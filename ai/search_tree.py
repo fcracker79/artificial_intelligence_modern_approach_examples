@@ -149,6 +149,14 @@ def _uniform_cost(queue: typing.Deque[Node], nodes: typing.Sequence[Node]) -> ty
     return collections.deque(sorted(itertools.chain(nodes, queue), key=lambda d: d.cost))
 
 
+def _depth_limited_first(depth_limit: int):
+    def _f(queue: typing.Deque[Node], nodes: typing.Sequence[Node]) -> typing.Deque[Node]:
+        return collections.deque(
+            filter(lambda d: d.depth <= depth_limit, _depth_first(queue, nodes))
+        )
+    return _f
+
+
 _LENGTH = 80
 
 
@@ -182,6 +190,7 @@ def _run_algos(add_costs: bool):
     _print_algo('BREADTH FIRST', g, 'Arad', 'Bucharest', _breadth_first)
     _print_algo('DEPTH FIRST', g, 'Arad', 'Bucharest', _depth_first)
     _print_algo('UNIFORM COST', g, 'Arad', 'Bucharest', _uniform_cost)
+    _print_algo('DEPTH FIRST LIMIT 3', g, 'Arad', 'Bucharest', _depth_limited_first(3))
 
 
 def _run():
