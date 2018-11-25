@@ -21,6 +21,9 @@ def _str_node(node: Node) -> str:
 
 def print_solution(name: str, solution: typing.Optional[Solution]):
     header(name)
+    if not solution:
+        print('NO SUCH SOLUTION')
+        return
     print('Score:', solution.score)
     print('Iterations:', solution.iterations)
     print('Best path:', '\n\t'.join(map(_str_node, solution.nodes)))

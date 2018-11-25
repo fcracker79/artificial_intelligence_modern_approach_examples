@@ -1,3 +1,8 @@
+import binascii
+import os
+import random
+import typing
+
 from ai.search_tree.common_types import Graph
 
 
@@ -26,4 +31,23 @@ def create_example_graph(add_costs: bool=False) -> Graph:
     g.add_arch('Hisrova', 'Eforie', add_costs and 2 or 1)
     g.add_arch('Vaslui', 'Iasi', add_costs and 2 or 1)
     g.add_arch('Iasi', 'Neamt', add_costs and 2 or 1)
+    return g
+
+
+def _generate_hex_node() -> str:
+    return binascii.hexlify(os.urandom(16)).decode()
+
+
+def create_big_graph(
+        nodes: int, archs: int, node_generator: typing.Callable[[], str]=_generate_hex_node,
+        add_costs: typing.Optional[bool]=None,
+        cost_generator: typing.Optional[typing.Callable[[str, str], int]]=None) -> Graph:
+    if add_costs is None and cost_generator is None:
+        raise ValueError('Please specify either \'add_costs\' or \'cost_generator\'')
+    g = Graph()
+    nodes = [node_generator() for _ in range(nodes)]
+    for _ in range(archs):
+        node1, node2 = nodes[random.randint(0, len(nodes) - 1)], nodes[random.randint(0, len(nodes) - 1)]
+        cost = cost_generator and cost_generator(node1, node2) or (add_costs and random.randint(1, len(nodes)) or 1)
+        g.add_arch(node1, node2, cost)
     return g
