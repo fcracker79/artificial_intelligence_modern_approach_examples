@@ -3,7 +3,7 @@ import time
 from ai.search_tree.node_expansion import expand_at_level
 from ai.search_tree.print_tools import print_solution
 from ai.search_tree.queuing_functions import depth_first
-from ai.search_tree.search_tree import SearchTree
+from ai.search_tree.search_tree import SearchTree, goal_conditional_function
 from ai.search_tree.common_types import Graph, Solution
 
 
@@ -14,8 +14,9 @@ def iterative_deepening_search(graph: Graph, from_node: str, to_node: str):
     for max_depth in range(len(graph.nodes)):
         if best_solution and len(best_solution.nodes) <= max_depth:
             break
-        search_tree = SearchTree(graph, from_node, to_node, expand_at_level(max_depth), depth_first)
-        solution = search_tree.solve()
+        search_tree = SearchTree(
+            graph, from_node, expand_at_level(max_depth), depth_first, goal_conditional_function(to_node))
+        solution, _ = search_tree.solve()
         iterations += search_tree.iterations
         if not solution:
             continue

@@ -2,21 +2,30 @@ import collections
 import sys
 import typing
 
-from ai.search_tree.common_types import Node, QueuingFunction, Graph, Solution
+from ai.search_tree.common_types import Node, QueuingFunction, Solution, GenericGraph, ElementType
 
 ExpandFunction = typing.NewType('ExpandFunction', typing.Callable[[Node, 'SearchTree'], typing.Iterable[Node]])
+ConditionalFunction = typing.NewType('ConditionalFunction', typing.Callable[[Node, typing.Sequence[Node]], bool])
 
 
-class SearchTree:
+def goal_conditional_function(goal) -> ConditionalFunction:
+    def _f(node: Node, path: typing.Sequence[Node]) -> bool:
+        return node.state == goal
+    return _f
+
+
+class SearchTree(typing.Generic[ElementType]):
     def __init__(
-            self, graph: Graph, root: str, goal: str,
+            self, graph: GenericGraph[ElementType], root: ElementType,
             expand_function: ExpandFunction,
-            queuing_function: QueuingFunction):
-        self.graph, self.root, self.goal = graph, root, goal
+            queuing_function: QueuingFunction,
+            conditional_function: ConditionalFunction):
+        self.graph, self.root = graph, root
         self.queuing_function = queuing_function
         self.nodes = collections.deque()
         self.nodes.append(Node(root, None, 0, 0))
         self._expand_function = expand_function
+        self._conditional_function = conditional_function
         self.iterations = 0
 
     def log(self, *a, **kw):
@@ -31,7 +40,8 @@ class SearchTree:
             children
         )
 
-    def solve(self) -> typing.Optional[Solution]:
+    def solve(self) -> typing.Tuple[typing.Optional[Solution], typing.Sequence[Solution]]:
+        all_solutions = []
         self.iterations = 0
         best_solution, best_score = None, sys.maxsize
         while self.nodes:
@@ -44,7 +54,8 @@ class SearchTree:
             path = list(self.get_parents(node))[::-1]
             self.log('Current path', node, path)
             self.log('Nodes', self.nodes)
-            if node.state == self.goal:
+            if self._conditional_function(node, path):
+                all_solutions.append(Solution(path + [node], node.cost, self.iterations))
                 if node.cost < best_score:
                     self.log(node)
                     best_solution, best_score = path + [node], node.cost
@@ -58,7 +69,9 @@ class SearchTree:
             self.nodes = self.queuing_function(self.nodes, children)
             node in self.nodes and self.nodes.remove(node)
 
-        return Solution(best_solution, best_score, self.iterations) if best_solution else None
+        return \
+            (Solution(best_solution, best_score, self.iterations), all_solutions)\
+            if best_solution else (None, [])
 
     @classmethod
     def get_parents(cls, node: Node):
