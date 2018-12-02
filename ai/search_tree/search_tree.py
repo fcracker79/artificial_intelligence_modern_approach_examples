@@ -46,6 +46,7 @@ class SearchTree(typing.Generic[ElementType]):
         best_solution, best_score = None, sys.maxsize
         while self.nodes:
             node = self.nodes.pop()  # type: Node
+            print('Node:', node.state)
             # Note:
             # Without this simple optimization, depth-first and breadth-first compare well in terms of performances.
             # With this optimization, depth-first is sligthly faster.
@@ -62,12 +63,16 @@ class SearchTree(typing.Generic[ElementType]):
                     self.log(best_solution)
                 continue
             children = self._expand_function(node, self)
+            print('First:', children[0].state)
             parent_states = set(map(lambda d: d.state, path))
             self.log('children', node, children)
             children = list(filter(lambda d: d.state not in parent_states, children))
+            print('First2:', children[0].state)
             self.log('children cleaned', children)
             self.nodes = self.queuing_function(self.nodes, children)
+            print('First3:', self.nodes[0].state)
             node in self.nodes and self.nodes.remove(node)
+            print('First4:', self.nodes[0].state)
 
         return \
             (Solution(best_solution, best_score, self.iterations), all_solutions)\
