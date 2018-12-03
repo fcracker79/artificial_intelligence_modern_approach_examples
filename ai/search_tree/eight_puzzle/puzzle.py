@@ -42,7 +42,8 @@ class Puzzle:
         return list(map(self._new_puzzle, self._MOVEMENTS[self.empty_slot]))
 
     def __str__(self) -> str:
-        result = '_' * 15 + '\n'
+        result = 'Cost: {}\n'.format(self.cost)
+        result += '_' * 15 + '\n'
         for i in range(4):
             result += '| ' + ' '.join(
                 map(lambda d: '{:02}'.format(d) if d > 0 else ' X', self.positions[i * 4: (i + 1) * 4])) + ' |\n'
@@ -59,24 +60,26 @@ class Puzzle:
     def __hash__(self):
         return self.empty_slot
 
+    @property
+    def cost(self):
+        return sum(
+            map(
+                lambda d: abs(d[0] - d[1] - 1) % 4 + abs(d[0] - d[1] - 1) // 4,
+                filter(
+                    lambda x: x[1] > 0,
+                    enumerate(self.positions)
+                )
+            )
+        )
+
 
 class PuzzleGraph(GenericGraph[Puzzle]):
     def __init__(self, root: Puzzle=None):
         self.root = root or Puzzle()
 
     def get_children(self, node: Puzzle) -> typing.Sequence[Puzzle]:
-        def _s(n: Puzzle) -> int:
-            return sum(
-                map(
-                    lambda d: abs(d[0] - d[1] - 1),
-                    filter(
-                        lambda x: x[1] > 0,
-                        enumerate(n.positions)
-                    )
-                )
-            )
-        base_heuristic_value = _s(node)
-        return sorted(node.get_children(), key=lambda d: _s(d) - base_heuristic_value)
+        base_heuristic_value = node.cost
+        return sorted(node.get_children(), key=lambda d: d.cost - base_heuristic_value)
 
     def get_cost(self, node1: Puzzle, node2: Puzzle) -> int:
         return 1

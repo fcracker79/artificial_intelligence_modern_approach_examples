@@ -3,7 +3,7 @@ import typing
 from ai.search_tree.common_types import Node
 from ai.search_tree.eight_puzzle.puzzle import PuzzleGraph
 from ai.search_tree.print_tools import print_solution
-from ai.search_tree.queuing_functions import breadth_first, depth_first
+from ai.search_tree.queuing_functions import depth_first, uniform_cost, breadth_first
 from ai.search_tree.search_tree import SearchTree
 
 if __name__ == '__main__':
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     search_tree = SearchTree(
         p, p.root,
         _expand_function,
-        depth_first,
+        uniform_cost,
         _conditional_function
     )
     solution, all_solutions = search_tree.solve()
