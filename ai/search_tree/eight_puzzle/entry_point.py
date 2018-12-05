@@ -1,10 +1,10 @@
 import typing
 
 from ai.search_tree.common_types import Node
-from ai.search_tree.eight_puzzle.puzzle import PuzzleGraph
+from ai.search_tree.eight_puzzle.puzzle import PuzzleGraph, Puzzle
 from ai.search_tree.print_tools import print_solution
 from ai.search_tree.queuing_functions import depth_first, uniform_cost, breadth_first, depth_limited_first, \
-    limited_first
+    limited
 from ai.search_tree.search_tree import SearchTree
 
 
@@ -19,7 +19,7 @@ def entry_point():
     search_tree = SearchTree(
         p, p.root,
         _expand_function,
-        limited_first(20, depth_first),
+        depth_first,
         _conditional_function,
         solutions=1
     )

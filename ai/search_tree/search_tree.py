@@ -47,10 +47,12 @@ class SearchTree(typing.Generic[ElementType]):
         self.iterations = 0
         best_solution, best_score = None, sys.maxsize
 
+        already_seen_states = set()
         count = 0
         while self.nodes:
             node = self.nodes.pop()  # type: Node
-            # print(node.state)
+            already_seen_states.add(node.state)
+            # print(node.depth, node.state)
             count += 1
             # print(node.depth, 'Node:', node.state)
             # Note:
@@ -79,9 +81,18 @@ class SearchTree(typing.Generic[ElementType]):
             self.log('children cleaned', children)
             self.nodes = self.queuing_function(self.nodes, children)
             node in self.nodes and self.nodes.remove(node)
+
+            # Removing duplicate states
+            if False:
+                nodes_to_remove = []
+                for node in self.nodes:
+                    if node.state in already_seen_states:
+                        nodes_to_remove.append(node)
+                for node in nodes_to_remove:
+                    self.nodes.remove(node)
+
             # print('Children', '\n'.join(map(lambda d: str(d.state), self.nodes)))
             pass
-
         return \
             (Solution(best_solution, best_score, self.iterations), all_solutions)\
             if best_solution else (None, [])

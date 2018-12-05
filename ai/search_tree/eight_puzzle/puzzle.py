@@ -8,6 +8,12 @@ _PUZZLE_SIZE = 3
 _PUZZLE_TILES_COUNT = _PUZZLE_SIZE ** 2
 
 _MOVEMENTS = {
+    2: (
+        (1, 2),
+        (0, 3),
+        (0, 3),
+        (1, 2)
+    ),
     3: (
         (1, 3),
         (0, 2, 4),
@@ -73,7 +79,7 @@ class Puzzle:
 
     @property
     def correct(self) -> bool:
-        return all((i == d - 1 for i, d in enumerate(self.positions)))
+        return all((i == d - 1 or d == 0 for i, d in enumerate(self.positions)))
 
     def __eq__(self, other):
         return self.positions == other.positions
@@ -88,7 +94,7 @@ class Puzzle:
                 lambda d: (
                                   abs(d[0] % _PUZZLE_SIZE - (d[1] - 1) % _PUZZLE_SIZE) +
                                   abs(d[0] // _PUZZLE_SIZE - (d[1] - 1) // _PUZZLE_SIZE)
-                          )# * (_PUZZLE_TILES_COUNT - d[1] + 1)
+                          ) * (_PUZZLE_TILES_COUNT - d[1] + 1)
                 ,
                 filter(
                     lambda x: x[1] > 0,

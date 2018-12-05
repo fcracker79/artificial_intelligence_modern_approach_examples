@@ -21,7 +21,7 @@ def uniform_cost(queue: typing.Deque[Node], nodes: typing.Sequence[Node]) -> typ
     return collections.deque(sorted(itertools.chain(nodes, queue), reverse=True, key=lambda d: d.cost))
 
 
-def limited_first(depth_limit: int, queuing_function: QueuingFunction):
+def limited(depth_limit: int, queuing_function: QueuingFunction):
     def _f(queue: typing.Deque[Node], nodes: typing.Sequence[Node]) -> typing.Deque[Node]:
         return collections.deque(
             filter(lambda d: d.depth <= depth_limit, queuing_function(queue, nodes))
@@ -30,4 +30,4 @@ def limited_first(depth_limit: int, queuing_function: QueuingFunction):
 
 
 def depth_limited_first(depth_limit: int):
-    return limited_first(depth_limit, depth_first)
+    return limited(depth_limit, depth_first)
