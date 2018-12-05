@@ -9,10 +9,11 @@ from ai.search_tree.print_tools import print_queens
 from ai.search_tree.queuing_functions import depth_first
 from ai.search_tree.search_tree import SearchTree
 
-if __name__ == '__main__':
-    start = time.time()
-    solutions = len(brute_force.brute_force())
-    elapsed_bf = time.time() - start
+
+def entry_point():
+    # start = time.time()
+    # solutions = len(brute_force.brute_force())
+    # elapsed_bf = time.time() - start
 
     start = time.time()
     chessboard = Chessboard()
@@ -45,5 +46,9 @@ if __name__ == '__main__':
             print_queens(list(map(lambda cur_solution: cur_solution.state, d.nodes)))
             c += 1
 
-    print('Total brute force: {} ({} sec)'.format(solutions, elapsed_bf))
+    # print('Total brute force: {} ({} sec)'.format(solutions, elapsed_bf))
     print('Total with graph: {} ({} sec)'.format(c, time.time() - start))
+
+
+if __name__ == '__main__':
+    entry_point()

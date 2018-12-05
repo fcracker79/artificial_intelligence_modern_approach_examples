@@ -6,7 +6,8 @@ from ai.search_tree.colored_areas.example import example
 from ai.search_tree.queuing_functions import depth_first
 from ai.search_tree.search_tree import SearchTree
 
-if __name__ == '__main__':
+
+def entry_point():
     start = time.time()
 
     colored_areas = example
@@ -23,3 +24,7 @@ if __name__ == '__main__':
             c += 1
 
     print('Total with graph: {} ({} sec)'.format(c, time.time() - start))
+
+
+if __name__ == '__main__':
+    entry_point()

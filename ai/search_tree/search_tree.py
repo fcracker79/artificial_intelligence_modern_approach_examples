@@ -19,7 +19,8 @@ class SearchTree(typing.Generic[ElementType]):
             self, graph: GenericGraph[ElementType], root: ElementType,
             expand_function: ExpandFunction,
             queuing_function: QueuingFunction,
-            conditional_function: ConditionalFunction):
+            conditional_function: ConditionalFunction,
+            solutions: int=sys.maxsize):
         self.graph, self.root = graph, root
         self.queuing_function = queuing_function
         self.nodes = collections.deque()
@@ -27,6 +28,7 @@ class SearchTree(typing.Generic[ElementType]):
         self._expand_function = expand_function
         self._conditional_function = conditional_function
         self.iterations = 0
+        self.solutions = solutions
 
     def log(self, *a, **kw):
         pass
@@ -44,9 +46,13 @@ class SearchTree(typing.Generic[ElementType]):
         all_solutions = []
         self.iterations = 0
         best_solution, best_score = None, sys.maxsize
+
+        count = 0
         while self.nodes:
             node = self.nodes.pop()  # type: Node
-            print('Node:', node.state)
+            # print(node.state)
+            count += 1
+            # print(node.depth, 'Node:', node.state)
             # Note:
             # Without this simple optimization, depth-first and breadth-first compare well in terms of performances.
             # With this optimization, depth-first is sligthly faster.
@@ -61,7 +67,11 @@ class SearchTree(typing.Generic[ElementType]):
                     self.log(node)
                     best_solution, best_score = path + [node], node.cost
                     self.log(best_solution)
-                continue
+                self.solutions -= 1
+                if self.solutions:
+                    continue
+                else:
+                    break
             children = self._expand_function(node, self)
             parent_states = set(map(lambda d: d.state, path))
             self.log('children', node, children)
@@ -69,6 +79,8 @@ class SearchTree(typing.Generic[ElementType]):
             self.log('children cleaned', children)
             self.nodes = self.queuing_function(self.nodes, children)
             node in self.nodes and self.nodes.remove(node)
+            # print('Children', '\n'.join(map(lambda d: str(d.state), self.nodes)))
+            pass
 
         return \
             (Solution(best_solution, best_score, self.iterations), all_solutions)\

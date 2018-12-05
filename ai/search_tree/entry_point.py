@@ -32,10 +32,10 @@ def _run_algos_romania(add_costs: bool):
     iterative_deepening_search(g, from_node, to_node)
 
 
-def _run():
+def entry_point():
     _run_algos_random_graph(False)
     _run_algos_random_graph(True)
 
 
 if __name__ == '__main__':
-    _run()
+    entry_point()
