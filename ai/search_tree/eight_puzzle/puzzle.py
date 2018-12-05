@@ -94,7 +94,7 @@ class Puzzle:
                 lambda d: (
                                   abs(d[0] % _PUZZLE_SIZE - (d[1] - 1) % _PUZZLE_SIZE) +
                                   abs(d[0] // _PUZZLE_SIZE - (d[1] - 1) // _PUZZLE_SIZE)
-                          ) * (_PUZZLE_TILES_COUNT - d[1] + 1)
+                          )#  * (_PUZZLE_TILES_COUNT - d[1] + 1)
                 ,
                 filter(
                     lambda x: x[1] > 0,
