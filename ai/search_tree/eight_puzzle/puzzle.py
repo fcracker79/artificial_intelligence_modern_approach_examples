@@ -46,7 +46,18 @@ _MOVEMENTS = {
 }
 
 
+_EXPECTED_POSITIONS = {
+    2:  [3, 1, 2, 0],
+    3: [4, 0, 1, 2, 5, 8, 7, 6, 3],  # From the book, a bit different
+}
+
+
+def _get_position(i: int) -> typing.Tuple[int, int]:
+    return i % _PUZZLE_SIZE, i // _PUZZLE_SIZE
+
+
 _MOVEMENTS = _MOVEMENTS[_PUZZLE_SIZE]
+_EXPECTED_POSITIONS = _EXPECTED_POSITIONS[_PUZZLE_SIZE]
 
 
 class Puzzle:
@@ -54,6 +65,8 @@ class Puzzle:
         self.positions = list(range(_PUZZLE_TILES_COUNT))
         random.shuffle(self.positions)
         self.empty_slot = self.positions.index(0)
+        self._cost = None
+        self._correct = None
 
     def _new_puzzle(self, position_to_move: int) -> 'Puzzle':
         p = Puzzle()
@@ -79,29 +92,28 @@ class Puzzle:
 
     @property
     def correct(self) -> bool:
-        return all((i == d - 1 or d == 0 for i, d in enumerate(self.positions)))
+        if self._correct is None:
+            self._correct = all((i == d - 1 or d == 0 for i, d in enumerate(self.positions)))
+        return self._correct
 
     def __eq__(self, other):
-        return self.positions == other.positions
+        return self.empty_slot == other.empty_slot and self.positions == other.positions
 
     def __hash__(self):
         return self.empty_slot
 
     @property
     def cost(self):
-        return sum(
-            map(
-                lambda d: (
-                                  abs(d[0] % _PUZZLE_SIZE - (d[1] - 1) % _PUZZLE_SIZE) +
-                                  abs(d[0] // _PUZZLE_SIZE - (d[1] - 1) // _PUZZLE_SIZE)
-                          )#  * (_PUZZLE_TILES_COUNT - d[1] + 1)
-                ,
-                filter(
-                    lambda x: x[1] > 0,
-                    enumerate(self.positions)
-                )
-            )
-        )
+        if self._cost is not None:
+            return self._cost
+        self._cost = 0
+        for i, e in enumerate(self.positions):
+            if not e:
+                continue
+            cur_position = _get_position(i)
+            expected_position = _get_position(_EXPECTED_POSITIONS[e])
+            self._cost += sum(map(lambda d: abs(d[1] - d[0]), zip(cur_position, expected_position)))
+        return self._cost
 
 
 class PuzzleGraph(GenericGraph[Puzzle]):
@@ -109,8 +121,9 @@ class PuzzleGraph(GenericGraph[Puzzle]):
         self.root = root or Puzzle()
 
     def get_children(self, node: Puzzle) -> typing.Sequence[Puzzle]:
-        base_heuristic_value = node.cost
-        return sorted(node.get_children(), key=lambda d: d.cost - base_heuristic_value)
+        return sorted(node.get_children(), key=lambda d: d.cost)
 
     def get_cost(self, node1: Puzzle, node2: Puzzle) -> int:
-        return 1
+        node1_cost = node1.cost
+        cost = node2.cost - node1_cost
+        return cost > 0 and cost or node1_cost

@@ -1,5 +1,6 @@
 import collections
 import sys
+import time
 import typing
 
 from ai.search_tree.common_types import Node, QueuingFunction, Solution, GenericGraph, ElementType
@@ -12,6 +13,18 @@ def goal_conditional_function(goal) -> ConditionalFunction:
     def _f(node: Node, path: typing.Sequence[Node]) -> bool:
         return node.state == goal
     return _f
+
+
+before = time.time()
+
+
+def dino(*a):
+    return
+    global before
+    now = time.time()
+    elapsed = now - before
+    before = now
+    print(*a, elapsed)
 
 
 class SearchTree(typing.Generic[ElementType]):
@@ -50,18 +63,24 @@ class SearchTree(typing.Generic[ElementType]):
         already_seen_states = set()
         count = 0
         while self.nodes:
+            count > 1700 and dino(1)
             node = self.nodes.pop()  # type: Node
+            count > 1700 and dino(2)
             already_seen_states.add(node.state)
+            count > 1700 and dino(3)
             count += 1
-            # print(node.depth, 'Node:', node.state)
+            # print(node.depth, 'd{} Node: {}'.format(node.depth, node.state))
             # Note:
             # Without this simple optimization, depth-first and breadth-first compare well in terms of performances.
             # With this optimization, depth-first is sligthly faster.
             if node.cost > best_score:
                 continue
+            count > 1700 and dino(4)
             path = list(self.get_parents(node))[::-1]
+            count > 1700 and dino(5)
             self.log('Current path', node, path)
             self.log('Nodes', self.nodes)
+            count > 1700 and dino(6)
             if self._conditional_function(node, path):
                 all_solutions.append(Solution(path + [node], node.cost, self.iterations))
                 if node.cost < best_score:
@@ -73,22 +92,29 @@ class SearchTree(typing.Generic[ElementType]):
                     continue
                 else:
                     break
+            count > 1700 and dino(7)
             children = self._expand_function(node, self)
+            count > 1700 and dino(8)
             parent_states = set(map(lambda d: d.state, path))
+            count > 1700 and dino(9)
             self.log('children', node, children)
             children = list(filter(lambda d: d.state not in parent_states, children))
+            count > 1700 and dino(10)
             self.log('children cleaned', children)
             self.nodes = self.queuing_function(self.nodes, children)
+            count > 1700 and dino(11)
             node in self.nodes and self.nodes.remove(node)
-            # if True:
-            #     nodes_to_remove = []
-            #     for node in self.nodes:
-            #         if node.state in already_seen_states:
-            #             nodes_to_remove.append(node)
-            #     for node in nodes_to_remove:
-            #         self.nodes.remove(node)
-
-            # print('Children', '\n'.join(map(lambda d: str(d.state), self.nodes)))
+            if True:
+                nodes_to_remove = []
+                for node in self.nodes:
+                    if node.state in already_seen_states:
+                        nodes_to_remove.append(node)
+                for node in nodes_to_remove:
+                    self.nodes.remove(node)
+            count > 1700 and dino(12)
+            count % 100 == 0 and print(node.depth, count, len(self.nodes))
+            count % 100 == 0 and print(node.state)
+            # print('Children', '\n'.join(map(lambda d: 'd{}: {}'.format(d.depth, str(d.state)), self.nodes)))
             pass
         return \
             (Solution(best_solution, best_score, self.iterations), all_solutions)\

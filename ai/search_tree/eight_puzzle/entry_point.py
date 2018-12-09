@@ -25,7 +25,7 @@ def entry_point():
     search_tree = SearchTree(
         p, p.root,
         _expand_function,
-        depth_first,
+        uniform_cost,
         _conditional_function,
         solutions=1
     )
