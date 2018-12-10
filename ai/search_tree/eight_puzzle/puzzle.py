@@ -53,7 +53,7 @@ _EXPECTED_POSITIONS = {
 
 
 def _get_position(i: int) -> typing.Tuple[int, int]:
-    return i % _PUZZLE_SIZE, i // _PUZZLE_SIZE
+    return i // _PUZZLE_SIZE, i % _PUZZLE_SIZE
 
 
 _MOVEMENTS = _MOVEMENTS[_PUZZLE_SIZE]
@@ -61,34 +61,38 @@ _EXPECTED_POSITIONS = _EXPECTED_POSITIONS[_PUZZLE_SIZE]
 
 
 class Puzzle:
-    def __init__(self):
-        self.positions = list(range(_PUZZLE_TILES_COUNT))
-        random.shuffle(self.positions)
+    def __init__(self, positions: typing.Sequence[int]=None):
+        if positions is None:
+            self.positions = list(range(_PUZZLE_TILES_COUNT))
+            random.shuffle(self.positions)
+        else:
+            self.positions = positions
         self.empty_slot = self.positions.index(0)
         self._cost = None
         self._correct = None
+        self._str = None
+        self._hash = hash(str(self))
 
     def _new_puzzle(self, position_to_move: int) -> 'Puzzle':
-        p = Puzzle()
-        p.positions = list(self.positions)
-        p.empty_slot = self.empty_slot
-        p.positions[p.empty_slot], p.positions[position_to_move] = \
-            p.positions[position_to_move], p.positions[p.empty_slot]
-        p.empty_slot = position_to_move
-        return p
+        new_puzzle = Puzzle(positions=list(self.positions))
+        new_puzzle.positions[new_puzzle.empty_slot], new_puzzle.positions[position_to_move] = \
+            new_puzzle.positions[position_to_move], new_puzzle.positions[new_puzzle.empty_slot]
+        new_puzzle.empty_slot = position_to_move
+        return new_puzzle
 
     def get_children(self) -> typing.Sequence['Puzzle']:
         return list(map(self._new_puzzle, _MOVEMENTS[self.empty_slot]))
 
     def __str__(self) -> str:
-        corner_size = (_PUZZLE_SIZE + 2) * 2 + _PUZZLE_SIZE - 1
-        result = 'Cost: {}\n'.format(self.cost)
-        result += '_' * corner_size + '\n'
-        for i in range(_PUZZLE_SIZE):
-            result += '| ' + ' '.join(
-                map(lambda d: '{:02}'.format(d) if d > 0 else ' X', self.positions[i * _PUZZLE_SIZE: (i + 1) * _PUZZLE_SIZE])) + ' |\n'
-        result += '-' * corner_size + '\n'
-        return result
+        if self._str is None:
+            corner_size = (_PUZZLE_SIZE + 2) * 2 + _PUZZLE_SIZE - 1
+            self._str = 'Cost: {}\n'.format(self.cost)
+            self._str += '_' * corner_size + '\n'
+            for i in range(_PUZZLE_SIZE):
+                self._str += '| ' + ' '.join(
+                    map(lambda d: '{:02}'.format(d) if d > 0 else ' X', self.positions[i * _PUZZLE_SIZE: (i + 1) * _PUZZLE_SIZE])) + ' |\n'
+            self._str += '-' * corner_size + '\n'
+        return self._str
 
     @property
     def correct(self) -> bool:
@@ -97,15 +101,20 @@ class Puzzle:
         return self._correct
 
     def __eq__(self, other):
-        return self.empty_slot == other.empty_slot and self.positions == other.positions
+        return self._hash == other._hash and self.positions == other.positions
 
     def __hash__(self):
-        return self.empty_slot
+        return self._hash
 
     @property
     def cost(self):
         if self._cost is not None:
             return self._cost
+        self._cost = self.cost_by_distance
+        return self._cost
+
+    @property
+    def cost_by_distance(self):
         self._cost = 0
         for i, e in enumerate(self.positions):
             if not e:
@@ -114,6 +123,22 @@ class Puzzle:
             expected_position = _get_position(_EXPECTED_POSITIONS[e])
             self._cost += sum(map(lambda d: abs(d[1] - d[0]), zip(cur_position, expected_position)))
         return self._cost
+
+    @property
+    def cost_by_nearby_wrong_elements(self):
+        cost = 0
+        pos = _get_position(self.empty_slot)
+        for i in (pos[0], pos[0] - 1, pos[0] + 1):
+            if i < 0 or i >= _PUZZLE_SIZE:
+                continue
+            for j in (pos[1], pos[1] - 1, pos[1] + 1):
+                if j < 0 or j >= _PUZZLE_SIZE:
+                    continue
+                if i == pos[0] and j == pos[1]:
+                    continue
+                if (i, j) != _get_position(_EXPECTED_POSITIONS[self.positions[i * _PUZZLE_SIZE + j]]):
+                    cost += 1
+        return cost
 
 
 class PuzzleGraph(GenericGraph[Puzzle]):
@@ -127,3 +152,10 @@ class PuzzleGraph(GenericGraph[Puzzle]):
         node1_cost = node1.cost
         cost = node2.cost - node1_cost
         return cost > 0 and cost or node1_cost
+
+
+p = Puzzle()
+p.positions = [1, 2, 3, 8, 0, 4, 7, 6, 5]
+p.empty_slot = 4
+print(p.cost_by_distance)
+print(p.cost_by_nearby_wrong_elements)

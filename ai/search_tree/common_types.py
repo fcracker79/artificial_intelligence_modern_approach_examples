@@ -50,6 +50,10 @@ Node = typing.NamedTuple(
     )
 
 
+Fringe = typing.NewType('Queue', typing.Sequence[Node])
+Children = typing.NewType('Children', typing.Sequence[Node])
+
+
 Solution = typing.NamedTuple(
     'Solution',
     (
@@ -61,5 +65,5 @@ Solution = typing.NamedTuple(
 
 QueuingFunction = typing.NewType(
     'QueuingFunction',
-    typing.Callable[[typing.Deque[Node], typing.Sequence[Node]], typing.Deque[Node]]
+    typing.Callable[[Fringe, Children], Fringe]
 )

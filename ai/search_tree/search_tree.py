@@ -66,6 +66,8 @@ class SearchTree(typing.Generic[ElementType]):
             count > 1700 and dino(1)
             node = self.nodes.pop()  # type: Node
             count > 1700 and dino(2)
+            if node.state in already_seen_states:
+                continue
             already_seen_states.add(node.state)
             count > 1700 and dino(3)
             count += 1
@@ -104,13 +106,6 @@ class SearchTree(typing.Generic[ElementType]):
             self.nodes = self.queuing_function(self.nodes, children)
             count > 1700 and dino(11)
             node in self.nodes and self.nodes.remove(node)
-            if True:
-                nodes_to_remove = []
-                for node in self.nodes:
-                    if node.state in already_seen_states:
-                        nodes_to_remove.append(node)
-                for node in nodes_to_remove:
-                    self.nodes.remove(node)
             count > 1700 and dino(12)
             count % 100 == 0 and print(node.depth, count, len(self.nodes))
             count % 100 == 0 and print(node.state)
