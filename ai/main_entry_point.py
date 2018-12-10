@@ -39,6 +39,7 @@ if __name__ == '__main__':
     eight_queens_entry_point.entry_point()
     banner.horizontal('END EIGHT QUEENS')
 
-    banner.horizontal('8-PUZZLE')
+    banner.horizontal('EIGHT PUZZLE')
     eight_puzzle_entry_point.entry_point()
-    banner.horizontal('END 8-PUZZLE')
+    banner.horizontal('END EIGHT PUZZLE')
+

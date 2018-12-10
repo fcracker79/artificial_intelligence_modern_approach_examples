@@ -3,8 +3,7 @@ import typing
 from ai.search_tree.common_types import Node
 from ai.search_tree.eight_puzzle.puzzle import PuzzleGraph, Puzzle
 from ai.search_tree.print_tools import print_solution
-from ai.search_tree.queuing_functions import depth_first, uniform_cost, breadth_first, depth_limited_first, \
-    limited
+from ai.search_tree.queuing_functions import uniform_cost, limited
 from ai.search_tree.search_tree import SearchTree
 
 
@@ -12,7 +11,7 @@ def entry_point():
     def _expand_function(node: Node, st: SearchTree) -> typing.Iterable[Node]:
         return list(st.get_children(node))
 
-    def _conditional_function(node: Node, path: typing.Sequence[Node]) -> bool:
+    def _conditional_function(node: Node, _: typing.Sequence[Node]) -> bool:
         return node.state.correct
 
     # puzzle = Puzzle(positions=[1, 2, 3, 8, 0, 4, 7, 6, 5])
