@@ -108,7 +108,7 @@ class Puzzle:
     def cost(self):
         if self._cost is not None:
             return self._cost
-        self._cost = self.cost_by_distance
+        self._cost = self.cost_by_nearby_wrong_elements
         return self._cost
 
     @property
