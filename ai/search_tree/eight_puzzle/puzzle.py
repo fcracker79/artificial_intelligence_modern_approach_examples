@@ -96,9 +96,7 @@ class Puzzle:
 
     @property
     def correct(self) -> bool:
-        if self._correct is None:
-            self._correct = all((i == d - 1 or d == 0 for i, d in enumerate(self.positions)))
-        return self._correct
+        return self.cost == 0
 
     def __eq__(self, other):
         return self._hash == other._hash and self.positions == other.positions

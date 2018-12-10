@@ -25,9 +25,7 @@ def uniform_cost(queue: Fringe, nodes: Children) -> Fringe:
 
 def limited(depth_limit: int, queuing_function: QueuingFunction):
     def _f(queue: Fringe, nodes: Children) -> Fringe:
-        return collections.deque(
-            filter(lambda d: d.depth <= depth_limit, queuing_function(queue, nodes))
-        )
+        return queuing_function(queue, filter(lambda d: d.depth <= depth_limit, nodes))
     return _f
 
 

@@ -33,8 +33,8 @@ def _run_algos_romania(add_costs: bool):
 
 
 def entry_point():
-    _run_algos_random_graph(False)
-    _run_algos_random_graph(True)
+    _run_algos_romania(False)
+    _run_algos_romania(True)
 
 
 if __name__ == '__main__':

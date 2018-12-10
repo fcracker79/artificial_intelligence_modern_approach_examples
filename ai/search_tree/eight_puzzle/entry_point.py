@@ -15,19 +15,19 @@ def entry_point():
     def _conditional_function(node: Node, path: typing.Sequence[Node]) -> bool:
         return node.state.correct
 
-    puzzle = Puzzle()
-    # Can't find solution for this
-    puzzle.positions = [1, 2, 3, 4, 5, 6, 8, 7, 0]
-    # puzzle.positions = [8, 5, 3, 4, 0, 2, 6, 7, 1]
-    puzzle.empty_slot = puzzle.positions.index(0)
+    # puzzle = Puzzle(positions=[1, 2, 3, 8, 0, 4, 7, 6, 5])
+    # puzzle = Puzzle(positions=[0, 2, 3, 1, 8, 4, 7, 6, 5])
+    puzzle = Puzzle(positions=[1, 2, 3, 4, 5, 6, 8, 7, 0])
+    # puzzle = Puzzle(positions=[8, 5, 3, 4, 0, 2, 7, 6, 1])
     p = PuzzleGraph(root=puzzle)
     print(p.root)
     search_tree = SearchTree(
         p, p.root,
         _expand_function,
-        uniform_cost,
+        limited(30, uniform_cost),
         _conditional_function,
-        solutions=1
+        solutions=1,
+        skip_duplicate_states=True
     )
     solution, all_solutions = search_tree.solve()
     print_solution('Best solution', solution)

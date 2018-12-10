@@ -33,7 +33,7 @@ class SearchTree(typing.Generic[ElementType]):
             expand_function: ExpandFunction,
             queuing_function: QueuingFunction,
             conditional_function: ConditionalFunction,
-            solutions: int=sys.maxsize):
+            solutions: int=sys.maxsize, skip_duplicate_states: bool=False):
         self.graph, self.root = graph, root
         self.queuing_function = queuing_function
         self.nodes = collections.deque()
@@ -42,6 +42,7 @@ class SearchTree(typing.Generic[ElementType]):
         self._conditional_function = conditional_function
         self.iterations = 0
         self.solutions = solutions
+        self.skip_duplicate_states = skip_duplicate_states
 
     def log(self, *a, **kw):
         pass
@@ -62,14 +63,13 @@ class SearchTree(typing.Generic[ElementType]):
 
         already_seen_states = set()
         count = 0
+
         while self.nodes:
-            count > 1700 and dino(1)
             node = self.nodes.pop()  # type: Node
-            count > 1700 and dino(2)
-            if node.state in already_seen_states:
-                continue
-            already_seen_states.add(node.state)
-            count > 1700 and dino(3)
+            if self.skip_duplicate_states:
+                if node.state in already_seen_states:
+                    continue
+                already_seen_states.add(node.state)
             count += 1
             # print(node.depth, 'd{} Node: {}'.format(node.depth, node.state))
             # Note:
@@ -77,12 +77,9 @@ class SearchTree(typing.Generic[ElementType]):
             # With this optimization, depth-first is sligthly faster.
             if node.cost > best_score:
                 continue
-            count > 1700 and dino(4)
             path = list(self.get_parents(node))[::-1]
-            count > 1700 and dino(5)
             self.log('Current path', node, path)
             self.log('Nodes', self.nodes)
-            count > 1700 and dino(6)
             if self._conditional_function(node, path):
                 all_solutions.append(Solution(path + [node], node.cost, self.iterations))
                 if node.cost < best_score:
@@ -94,21 +91,19 @@ class SearchTree(typing.Generic[ElementType]):
                     continue
                 else:
                     break
-            count > 1700 and dino(7)
             children = self._expand_function(node, self)
-            count > 1700 and dino(8)
-            parent_states = set(map(lambda d: d.state, path))
-            count > 1700 and dino(9)
-            self.log('children', node, children)
-            children = list(filter(lambda d: d.state not in parent_states, children))
-            count > 1700 and dino(10)
+            # A parent state is a state that was already processed. Unnecessary double check.
+            if not self.skip_duplicate_states:
+                parent_states = set(map(lambda d: d.state, path))
+                self.log('children', node, children)
+                children = list(filter(lambda d: d.state not in parent_states, children))
             self.log('children cleaned', children)
             self.nodes = self.queuing_function(self.nodes, children)
-            count > 1700 and dino(11)
-            node in self.nodes and self.nodes.remove(node)
-            count > 1700 and dino(12)
-            count % 100 == 0 and print(node.depth, count, len(self.nodes))
-            count % 100 == 0 and print(node.state)
+            not self.skip_duplicate_states and node in self.nodes and self.nodes.remove(node)
+            count % 100 == 0 and print('.', end='')
+            count % (100 * 80) == 0 and print('\n', node.depth, '\n', node.state)
+            # count % 100 == 0 and print('d', node.depth, 'c', count, 'n', len(self.nodes))
+            # count % 100 == 0 and print(node.state)
             # print('Children', '\n'.join(map(lambda d: 'd{}: {}'.format(d.depth, str(d.state)), self.nodes)))
             pass
         return \
