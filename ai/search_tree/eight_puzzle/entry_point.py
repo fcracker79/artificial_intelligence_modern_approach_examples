@@ -17,7 +17,10 @@ def entry_point():
     # puzzle = Puzzle(positions=[1, 2, 3, 8, 0, 4, 7, 6, 5])
     # puzzle = Puzzle(positions=[0, 2, 3, 1, 8, 4, 7, 6, 5])
     # puzzle = Puzzle(positions=[1, 2, 3, 4, 5, 6, 8, 7, 0])
-    puzzle = Puzzle(positions=[8, 5, 3, 4, 0, 2, 7, 6, 1])
+    # puzzle = Puzzle(positions=[8, 5, 3, 4, 0, 2, 7, 6, 1])
+    puzzle = Puzzle(positions=[1, 2, 3, 8, 0, 4, 7, 6, 5])
+    puzzle.shuffle(100)
+    # puzzle = Puzzle(positions=[3, 4, 5, 2, 1, 8, 7, 6, 0])
     p = PuzzleGraph(root=puzzle)
     print(p.root)
     search_tree = SearchTree(

@@ -71,7 +71,7 @@ class Puzzle:
         self._cost = None
         self._correct = None
         self._str = None
-        self._hash = hash(str(self))
+        self._hash = None
 
     def _new_puzzle(self, position_to_move: int) -> 'Puzzle':
         new_puzzle = Puzzle(positions=list(self.positions))
@@ -102,7 +102,18 @@ class Puzzle:
         return self._hash == other._hash and self.positions == other.positions
 
     def __hash__(self):
+        if self._hash is None:
+            self._hash = hash(str(self))
         return self._hash
+
+    def shuffle(self, steps: int):
+        for _ in range(steps):
+            positions = _MOVEMENTS[self.empty_slot]
+            position_to_move = positions[random.randint(0, len(positions) - 1)]
+            self.positions[self.empty_slot], self.positions[position_to_move] = \
+                self.positions[position_to_move], self.positions[self.empty_slot]
+            self.empty_slot = position_to_move
+        self._cost = self._correct = self._hash = None
 
     @property
     def cost(self):
