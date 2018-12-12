@@ -6,6 +6,7 @@ from ai.search_tree import entry_point as search_tree_entry_point
 from ai.search_tree.colored_areas import entry_point as colored_areas_entry_point
 from ai.search_tree.eight_queens import entry_point as eight_queens_entry_point
 from ai.search_tree.eight_puzzle import entry_point as eight_puzzle_entry_point
+from ai.search_tree.eight_queens.min_conflict import min_conflict
 
 
 class Unbuffered(object):
@@ -38,6 +39,10 @@ if __name__ == '__main__':
     banner.horizontal('EIGHT QUEENS')
     eight_queens_entry_point.entry_point()
     banner.horizontal('END EIGHT QUEENS')
+
+    banner.horizontal('EIGHT QUEENS WITH MIN CONFLICTS')
+    print('{}, with {} iterations'.format(*min_conflict()))
+    banner.horizontal('END EIGHT QUEENS WITH MIN CONFLICTS')
 
     banner.horizontal('EIGHT PUZZLE')
     eight_puzzle_entry_point.entry_point()
