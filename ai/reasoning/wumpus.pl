@@ -17,10 +17,10 @@ status(S) :- S > 0, SP is S - 1, result(a, SP).
 
 %% Basic movement rules
 orientation(O, S) :- S > 0, SP is S - 1, OP is (O - 1) mod 3, status(SP), orientation(OP, SP), turned(SP).
-at(X, Y, S) :- S > 0, SP is S - 1, forwarded(SP), X > 0, XP is X - 1, at(XP, Y, SP), orientation(0, SP).
-at(X, Y, S) :- S > 0, SP is S - 1, forwarded(SP), Y > 0, YP is Y - 1, at(X, YP, SP), orientation(1, SP).
-at(X, Y, S) :- S > 0, SP is S - 1, forwarded(SP), XP is X + 1, at(XP, Y, SP), orientation(2, SP).
-at(X, Y, S) :- S > 0, SP is S - 1, forwarded(SP), YP is Y + 1, at(X, YP, SP), orientation(3, SP).
+at(X, Y, S) :- S > 0, SP is S - 1, forwarded(X, Y, SP), X > 0, XP is X - 1, at(XP, Y, SP), orientation(0, SP).
+at(X, Y, S) :- S > 0, SP is S - 1, forwarded(X, Y, SP), Y > 0, YP is Y - 1, at(X, YP, SP), orientation(1, SP).
+at(X, Y, S) :- S > 0, SP is S - 1, forwarded(X, Y, SP), XP is X + 1, at(XP, Y, SP), orientation(2, SP).
+at(X, Y, S) :- S > 0, SP is S - 1, forwarded(X, Y, SP), YP is Y + 1, at(X, YP, SP), orientation(3, SP).
 
 %% Derived table state
 stentch(X, Y, S) :- X > 0, XP is X - 1, wumpus(XP, Y, S).
@@ -50,10 +50,10 @@ wumpus_killed(S) :- at(X, Y, S), fired(S), orientation(0, S), wumpus(X, Y2, S), 
 
 
 %% Choice to move
-forward_ok(S) :- S > 0, SP is S - 1, at(X, Y, SP), ok(X, Y, SP).
-forward_danger(S) :- S > 0, SP is S - 1, not(forward_ok(S)), danger(X, Y, SP).
-forwarded(S) :- forward_ok(S).
-forwarded(S) :- forward_danger(S).
+forward_ok(X, Y, S) :- S > 0, SP is S - 1, at(X, Y, SP), ok(X, Y, SP).
+forward_danger(X, Y, S) :- S > 0, SP is S - 1, not(forward_ok(X, Y, S)), danger(X, Y, SP).
+forwarded(X, Y, S) :- forward_ok(X, Y, S).
+forwarded(X, Y, S) :- forward_danger(X, Y, S).
 
 %% Fire
 fired(S) :- S > 0, SP is S - 1, not(fired(SP)), stentch(X, Y, SP), at(X, Y, SP), i_am_in_front_of_wumpus(X, Y, SP).
@@ -61,7 +61,12 @@ i_am_in_front_of_wumpus(X, Y, S) :- orientation(0, S), at(X, Y, S), XP is X + 1,
 i_am_in_front_of_wumpus(X, Y, S) :- orientation(1, S), at(X, Y, S), YP is Y + 1, there_must_be_wumpus(X, YP, S).
 i_am_in_front_of_wumpus(X, Y, S) :- orientation(2, S), at(X, Y, S), X > 0, XP is X - 1, there_must_be_wumpus(XP, Y, S).
 i_am_in_front_of_wumpus(X, Y, S) :- orientation(3, S), at(X, Y, S), Y > 0, YP is Y - 1, there_must_be_wumpus(X, YP, S).
-there_must_be_wumpus(X, Y, S) :- XP is X - 1, XQ is X + 1, YP is Y - 1, YQ is Y + 1, stentch_or_wall(XP, Y, S), stentch_or_wall(XQ, Y, S), stentch_or_wall(X, YP, S), stentch_or_wall(X, YQ, S).
+there_must_be_wumpus(X, Y, S) :- XP is X - 1, XQ is X + 1, stentch_or_wall(XP, Y, S), stentch_or_wall(XQ, Y, S).
+there_must_be_wumpus(X, Y, S) :- XP is X - 1, YQ is Y + 1, stentch_or_wall(XP, Y, S), stentch_or_wall(X, YQ, S).
+there_must_be_wumpus(X, Y, S) :- XP is X - 1, YP is Y - 1, stentch_or_wall(XP, Y, S), stentch_or_wall(X, YP, S).
+there_must_be_wumpus(X, Y, S) :- XQ is X + 1, YP is Y - 1, stentch_or_wall(XQ, Y, S), stentch_or_wall(X, YP, S).
+there_must_be_wumpus(X, Y, S) :- XQ is X + 1, YQ is Y + 1, stentch_or_wall(XQ, Y, S), stentch_or_wall(X, YQ, S).
+there_must_be_wumpus(X, Y, S) :- YP is Y - 1, YQ is Y + 1, stentch_or_wall(X, YP, S), stentch_or_wall(X, YQ, S).
 stentch_or_wall(X, Y, S) :- X > 0, Y > 0, wall(X, Y).
 stentch_or_wall(X, Y, S) :- X > 0, Y > 0, stentch(X, Y, S).
 
