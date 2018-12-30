@@ -8,7 +8,7 @@ from ai.search_tree.eight_queens import entry_point as eight_queens_entry_point
 from ai.search_tree.eight_puzzle import entry_point as eight_puzzle_entry_point
 from ai.search_tree.eight_queens.min_conflict import min_conflict
 from ai.game_play.minmax import entry_point as tic_tac_toe_entry_point
-from ai.and_or_search import entry_point as and_or_search_entry_point
+from ai.search_tree.and_or_search import entry_point as and_or_search_entry_point
 
 
 class Unbuffered(object):
