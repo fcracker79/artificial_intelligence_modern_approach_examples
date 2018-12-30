@@ -34,25 +34,37 @@ if __name__ == '__main__':
     search_tree_entry_point.entry_point()
     banner.horizontal('END SEARCH TREE')
 
+    print()
+
     banner.horizontal('COLORED AREAS')
     colored_areas_entry_point.entry_point()
     banner.horizontal('END COLORED AREAS')
+
+    print()
 
     banner.horizontal('EIGHT QUEENS')
     eight_queens_entry_point.entry_point()
     banner.horizontal('END EIGHT QUEENS')
 
+    print()
+
     banner.horizontal('EIGHT QUEENS WITH MIN CONFLICTS')
     print('{}, with {} iterations'.format(*min_conflict()))
     banner.horizontal('END EIGHT QUEENS WITH MIN CONFLICTS')
+
+    print()
 
     banner.horizontal('EIGHT PUZZLE')
     eight_puzzle_entry_point.entry_point()
     banner.horizontal('END EIGHT PUZZLE')
 
+    print()
+
     banner.horizontal('TIC TAC TOE')
     tic_tac_toe_entry_point.entry_point()
     banner.horizontal('END TIC TAC TOE')
+
+    print()
 
     banner.horizontal('AND-OR-SEARCH')
     and_or_search_entry_point.entry_point()
