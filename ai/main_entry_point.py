@@ -9,7 +9,7 @@ from ai.search_tree.eight_puzzle import entry_point as eight_puzzle_entry_point
 from ai.search_tree.eight_queens.min_conflict import min_conflict
 from ai.game_play.minmax import entry_point as tic_tac_toe_entry_point
 from ai.search_tree.and_or_search import entry_point as and_or_search_entry_point
-
+from ai.search_tree.online_search import entry_point as online_search_entry_point
 
 class Unbuffered(object):
     def __init__(self, stream):
@@ -69,3 +69,9 @@ if __name__ == '__main__':
     banner.horizontal('AND-OR-SEARCH')
     and_or_search_entry_point.entry_point()
     banner.horizontal('END AND-OR-SEARCH')
+
+    print()
+
+    banner.horizontal('ONLINE SEARCH')
+    online_search_entry_point.entry_point()
+    banner.horizontal('END ONLINE SEARCH')
