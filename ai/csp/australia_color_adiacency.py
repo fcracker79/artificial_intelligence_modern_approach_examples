@@ -34,6 +34,13 @@ AUSTRALIA_CONSTRAINED_VARIABLES = [
     {AustraliaColorAdiacencyVariableType.SA, AustraliaColorAdiacencyVariableType.V}
 ]
 
+_AUSTRALIA_NUM_CONSTRAINTS = dict()
+
+for s in AUSTRALIA_CONSTRAINED_VARIABLES:
+    for v in s:
+        _AUSTRALIA_NUM_CONSTRAINTS.setdefault(v, 0)
+        _AUSTRALIA_NUM_CONSTRAINTS[v] += len(s) - 1
+
 
 def create_domain() -> Domain:
     return Domain({v: set(x for x in AustraliaColorVariableValue) for v in AustraliaColorAdiacencyVariableType})
@@ -55,15 +62,8 @@ def constraint_function(assignment: VariableAssignment) -> bool:
 
 
 def select_unassigned_variable(csp: ConstraintSatisfactionProblem, assignment: VariableAssignment) -> VariableType:
-    if not assignment:
-        return AustraliaColorAdiacencyVariableType.SA
-    min_choices_variable = domain_size = None
-    for cur_variable, cur_domain in csp.domain.items():
-        if cur_variable in assignment:
-            continue
-        if min_choices_variable is None or domain_size > len(cur_domain):
-            min_choices_variable, domain_size = cur_variable, len(cur_domain)
-    return min_choices_variable
+    unassigned_variables = [v for v in csp.variables if v not in assignment]
+    return sorted(unassigned_variables, key=lambda d: _AUSTRALIA_NUM_CONSTRAINTS.get(d, 0), reverse=True)[0]
 
 
 def get_ordered_values(

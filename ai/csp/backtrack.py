@@ -14,7 +14,12 @@ def _inference(
     variable: VariableType,
     assignment: VariableAssignment
 ) -> typing.Optional[VariableAssignment]:
-    # I might have to undo what _inference does
+    # I might have to undo what _inference does. So I cannot simply apply 'arc_consistency.ac3'
+    # as this would reduce the domain. After undoing, I should restore the domain as well, which
+    # could be rather annoying.
+    # Since I could not find an explicit reference to this problem, I decided to implement this
+    # as a copy of the domain and use cs3 just to discover if, upon assignment, I can INFER
+    # other singleton values.
     csp = ConstraintSatisfactionProblem(
         csp.variables, csp.constrained_variables,
         dict(csp.domain), csp.constraints
@@ -58,6 +63,11 @@ def _backtrack(
         assignment[variable_to_assign] = cur_value
         inferences = _inference(csp, variable_to_assign, assignment)
         if inferences is not None:
+            # inferences and print(
+            #     'I have found {} new inferences, assignments were {}'.format(
+            #         len(inferences), len(assignment)
+            #     )
+            # )
             _update_assignment_with_inferences(assignment, inferences)
             result = _backtrack(assignment, csp, get_unassigned_variable, get_order_domain_values)
             if result is not None:
