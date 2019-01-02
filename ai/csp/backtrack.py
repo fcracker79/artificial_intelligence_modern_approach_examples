@@ -20,6 +20,7 @@ def _inference(
     # Since I could not find an explicit reference to this problem, I decided to implement this
     # as a copy of the domain and use cs3 just to discover if, upon assignment, I can INFER
     # other singleton values.
+    # On the other hand, though, I cannot benefit from domain reduction.
     csp = ConstraintSatisfactionProblem(
         csp.variables, csp.constrained_variables,
         dict(csp.domain), csp.constraints
