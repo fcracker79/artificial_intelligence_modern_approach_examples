@@ -59,6 +59,8 @@ def select_unassigned_variable(csp: ConstraintSatisfactionProblem, assignment: V
         return AustraliaColorAdiacencyVariableType.SA
     min_choices_variable = domain_size = None
     for cur_variable, cur_domain in csp.domain.items():
+        if cur_variable in assignment:
+            continue
         if min_choices_variable is None or domain_size > len(cur_domain):
             min_choices_variable, domain_size = cur_variable, len(cur_domain)
     return min_choices_variable

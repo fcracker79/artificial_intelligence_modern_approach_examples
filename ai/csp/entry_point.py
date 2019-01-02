@@ -1,8 +1,10 @@
+from pprint import pprint
+
 from ai.csp import backtrack, australia_color_adiacency
 
 
 def entry_point():
-    print(backtrack.backtracking_search(
+    pprint(backtrack.backtracking_search(
         australia_color_adiacency.create_csp(),
         australia_color_adiacency.select_unassigned_variable,
         australia_color_adiacency.get_ordered_values

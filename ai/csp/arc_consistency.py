@@ -6,7 +6,7 @@ from ai.csp.csp_types import ConstraintSatisfactionProblem, VariableType, Variab
 
 def _revise(csp: ConstraintSatisfactionProblem, variables: typing.Sequence[VariableType]) -> bool:
     def _assignment(*variable_values: VariableValue) -> VariableAssignment:
-        return {e[0]: e[1] for e in zip(csp.variables, variable_values)}
+        return VariableAssignment({e[0]: e[1] for e in zip(csp.variables, variable_values)})
     values_to_remove = []
     variable_to_refine = variables[0]
     for x in csp.domain[variable_to_refine]:

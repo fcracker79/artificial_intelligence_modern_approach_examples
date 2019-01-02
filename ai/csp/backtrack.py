@@ -1,5 +1,4 @@
 import typing
-from copy import deepcopy
 
 from ai.csp import arc_consistency
 from ai.csp.csp_types import VariableAssignment, ConstraintSatisfactionProblem, VariableType, \
@@ -16,8 +15,10 @@ def _inference(
     assignment: VariableAssignment
 ) -> typing.Optional[VariableAssignment]:
     # I might have to undo what _inference does
-    # csp = deepcopy(csp)
-
+    csp = ConstraintSatisfactionProblem(
+        csp.variables, csp.constrained_variables,
+        dict(csp.domain), csp.constraints
+    )
     for k, v in assignment.items():
         csp.domain[k] = {v}
 
@@ -61,7 +62,7 @@ def _backtrack(
             result = _backtrack(assignment, csp, get_unassigned_variable, get_order_domain_values)
             if result is not None:
                 return result
-        _remove_inferences_from_assignment(assignment, inferences)
+            _remove_inferences_from_assignment(assignment, inferences)
     del assignment[variable_to_assign]
     return None
 
