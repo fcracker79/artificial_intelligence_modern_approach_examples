@@ -28,7 +28,8 @@ init() :-
     assertz(at(1, 1)),
     asserta(i_know_it_is_safe(1, 1)),
     assertz(have(arrow)),
-    asserta(turned(0)).
+    asserta(turned(0)),
+    infer_safe_positions_if_i_am_in_a_clear_position(1, 1).
 
 action_turn() :-
     direction(D),
@@ -43,6 +44,15 @@ action_multi_turn(D) :-
     assertz(direction(D)),
     asserta(turned(D)).
 
+infer_safe_positions_if_i_am_in_a_clear_position(X, Y) :-
+    stentch(X, Y); breeze(X, Y);
+    (
+        (X =:= 5; (XP is X + 1, asserta(i_know_it_is_safe(XP, Y)))),
+        (Y =:= 5; (YQ is Y + 1, asserta(i_know_it_is_safe(X, YQ)))),
+        (X =:= 1; (XP is X - 1, asserta(i_know_it_is_safe(XP, Y))));
+        (Y =:= 1; (YQ is Y - 1, asserta(i_know_it_is_safe(X, YQ))))
+    ).
+
 action_move() :-
     at(X, Y),
     (retractall(turned(_)); !),
@@ -50,47 +60,61 @@ action_move() :-
     retract(at(X, Y)),
     (
         (direction(0), XP is X + 1, asserta(i_have_been_at(XP, Y)), assertz(at(XP, Y)), i_am_aware_of(XP, Y));
-        (direction(1), YP is Y + 1, asserta(i_have_been_at(X, YP)), assertz(at(X, YP)), i_am_aware_of(X, YP));
+        (direction(1), YQ is Y + 1, asserta(i_have_been_at(X, YQ)), assertz(at(X, YQ)), i_am_aware_of(X, YQ));
         (direction(2), XP is X - 1, asserta(i_have_been_at(XP, Y)), assertz(at(XP, Y)), i_am_aware_of(XP, Y));
-        (direction(3), YP is Y - 1, asserta(i_have_been_at(X, YP)), assertz(at(X, YP)), i_am_aware_of(X, YP))
+        (direction(3), YQ is Y - 1, asserta(i_have_been_at(X, YQ)), assertz(at(X, YQ)), i_am_aware_of(X, YQ))
     ),
+    infer_safe_positions_if_i_am_in_a_clear_position(X, Y),
     infer_safe_positions().
 
 
 infer_safe_positions() :-
-    (
-        (at(X, Y), i_know_it_is_safe(X, Y));
-        (
-            infer_there_may_be_wumpus(),
-            infer_there_may_be_pit()
-
-        )
-    ),
+    infer_there_may_be_wumpus(),
+    infer_there_may_be_pit(),
     %% I would like it could infer these by himself. I do not know how, though...
-    (there_may_be_wumpus(X, Y), there_may_be_pit(X, Y), asserta(i_know_it_is_safe(X, Y))); !.
+    infer_safe().
+
+
+infer_safe() :-
+    at(X, Y),
+    (
+    (
+        (X =:= 5; (XP is X + 1, there_may_be_wumpus(XP, Y), there_may_be_pit(XP, Y), asserta(i_know_it_is_safe(XP, Y)))),
+        (X =:= 1; (XQ is X - 1, there_may_be_wumpus(XQ, Y), there_may_be_pit(XQ, Y), asserta(i_know_it_is_safe(XQ, Y)))),
+        (Y =:= 5; (YP is Y + 1, there_may_be_wumpus(X, YP), there_may_be_pit(X, YP), asserta(i_know_it_is_safe(X, YP)))),
+        (Y =:= 1; (YQ is Y - 1, there_may_be_wumpus(X, YQ), there_may_be_pit(X, YQ), asserta(i_know_it_is_safe(X, YQ))))
+    ); true
+    ).
+
 
 infer_there_may_be_wumpus() :-
-    at(X, Y), i_know_it_is_stentch(X, Y),
+    at(X, Y),
     (
-        XP is X + 1, \+ wall(XP, Y), asserta(there_may_be_wumpus(XP, Y));
-        XP is X - 1, \+ wall(XP, Y), asserta(there_may_be_wumpus(XP, Y));
-        YP is Y + 1, \+ wall(X, YP), asserta(there_may_be_wumpus(X, YP));
-        YP is Y - 1, \+ wall(X, YP), asserta(there_may_be_wumpus(X, YP))
-    ).
+    \+ i_know_it_is_stentch(X, Y);
+    (
+        (X =:= 5; (XP is X + 1, \+ wall(XP, Y), asserta(there_may_be_wumpus(XP, Y)))),
+        (X =:= 1; (XQ is X - 1, \+ wall(XQ, Y), asserta(there_may_be_wumpus(XQ, Y)))),
+        (Y =:= 5; (YP is Y + 1, \+ wall(X, YP), asserta(there_may_be_wumpus(X, YP)))),
+        (Y =:= 1; (YQ is Y - 1, \+ wall(X, YQ), asserta(there_may_be_wumpus(X, YQ))))
+    )
+    ); true.
 
 infer_there_may_be_pit() :-
-    at(X, Y), i_know_it_is_breeze(X, Y),
+    at(X, Y),
     (
-        XP is X + 1, \+ wall(XP, Y), asserta(there_may_be_pit(XP, Y));
-        XP is X - 1, \+ wall(XP, Y), asserta(there_may_be_pit(XP, Y));
-        YP is Y + 1, \+ wall(X, YP), asserta(there_may_be_pit(X, YP));
-        YP is Y - 1, \+ wall(X, YP), asserta(there_may_be_pit(X, YP))
-    ).
+    \+ i_know_it_is_breeze(X, Y);
+    (
+        (X =:= 5; (XP is X + 1, \+ wall(XP, Y), asserta(there_may_be_pit(XP, Y)))),
+        (X =:= 1; (XQ is X - 1, \+ wall(XQ, Y), asserta(there_may_be_pit(XQ, Y)))),
+        (Y =:= 5; (YP is Y + 1, \+ wall(X, YP), asserta(there_may_be_pit(X, YP)))),
+        (Y =:= 1; (YQ is Y - 1, \+ wall(X, YQ), asserta(there_may_be_pit(X, YQ))))
+    )
+    ); true.
 
 i_am_aware_of(X, Y) :-
     (breeze(X, Y), asserta(i_know_it_is_breeze(X, Y)));
     (stentch(X, Y), asserta(i_know_it_is_stentch(X, Y)));
-    asserta(i_know_it_is_safe(X, Y)).
+    wumpus(X, Y); pit(X, Y); writef('dino %w, %w\n', [X, Y]), asserta(i_know_it_is_safe(X, Y)).
 
 breeze(X, Y) :-
     pit(XP, Y), X is XP + 1, !;
@@ -188,6 +212,7 @@ explore() :-
     init(),
     go().
 
+
 i_have_won() :-
     (writef('0'), win(), writef('I have won\n')).
 
@@ -198,7 +223,7 @@ i_grab_gold() :-
     (writef('2'), at(X, Y), \+ have(gold), gold(X, Y), assertz(have(gold)), writef('I have grabbed gold\n'), go()).
 
 i_safely_proceed() :-
-    (writef('3'), at(X, Y), (i_know_it_is_safe(X, Y); i_am_in_front_of_safe()), \+ i_am_in_front_of_wall(), action_move(), writef('I safely move\n'), go()).
+    (writef('3'), i_am_in_front_of_safe(), \+ i_am_in_front_of_wall(), action_move(), writef('I safely move\n'), go()).
 
 i_kill_the_wumpus() :-
     (writef('4'), have(arrow), i_am_in_front_of_wumpus(), action_shoot(), writef('I shot at the wumpus\n'), go()).
@@ -241,9 +266,9 @@ go() :-
         i_grab_gold();
         i_return_as_fast_as_possible();
         \+ i_have_been_at_in_front(), i_safely_proceed();
-        i_kill_the_wumpus();
         \+ i_have_done_a_complete_turn(), i_turn();
         i_safely_proceed();
         i_turn();
+        i_kill_the_wumpus();
         i_unsafely_proceed()
     ).
