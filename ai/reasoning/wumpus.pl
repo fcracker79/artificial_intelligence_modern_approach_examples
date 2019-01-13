@@ -11,13 +11,17 @@
     there_may_be_pit/2,
     turned/1.
 
+%% wumpus_log(_).
+%% wumpus_log(_, _).
+wumpus_log(X) :- writef(X).
+wumpus_log(X, Y) :- writef(X, Y).
+
 %% Initial state
 wall(0, _) :- !.
 wall(_, 0) :- !.
 wall(5, _) :- !.
 wall(_, 5) :- !.
 
-pit(3, 3) :- !.
 pit(3, 1) :- !.
 pit(4, 4) :- !.
 gold(2, 3) :- !.
@@ -114,7 +118,7 @@ infer_there_may_be_pit() :-
 i_am_aware_of(X, Y) :-
     (breeze(X, Y), asserta(i_know_it_is_breeze(X, Y)));
     (stentch(X, Y), asserta(i_know_it_is_stentch(X, Y)));
-    wumpus(X, Y); pit(X, Y); writef('dino %w, %w\n', [X, Y]), asserta(i_know_it_is_safe(X, Y)).
+    wumpus(X, Y); pit(X, Y); wumpus_log('dino %w, %w\n', [X, Y]), asserta(i_know_it_is_safe(X, Y)).
 
 breeze(X, Y) :-
     pit(XP, Y), X is XP + 1, !;
@@ -214,25 +218,25 @@ explore() :-
 
 
 i_have_won() :-
-    (writef('0'), win(), writef('I have won\n')).
+    (wumpus_log('0'), win(), wumpus_log('I have won\n')).
 
 i_have_lost() :-
-    (writef('1'), lost(), writef('I have lost\n')).
+    (wumpus_log('1'), lost(), wumpus_log('I have lost\n')).
 
 i_grab_gold() :-
-    (writef('2'), at(X, Y), \+ have(gold), gold(X, Y), assertz(have(gold)), writef('I have grabbed gold\n'), go()).
+    (wumpus_log('2'), at(X, Y), \+ have(gold), gold(X, Y), assertz(have(gold)), wumpus_log('I have grabbed gold\n'), go()).
 
 i_safely_proceed() :-
-    (writef('3'), i_am_in_front_of_safe(), \+ i_am_in_front_of_wall(), action_move(), writef('I safely move\n'), go()).
+    (wumpus_log('3'), i_am_in_front_of_safe(), \+ i_am_in_front_of_wall(), action_move(), wumpus_log('I safely move\n'), go()).
 
 i_kill_the_wumpus() :-
-    (writef('4'), have(arrow), i_am_in_front_of_wumpus(), action_shoot(), writef('I shot at the wumpus\n'), go()).
+    (wumpus_log('4'), have(arrow), i_am_in_front_of_wumpus(), action_shoot(), wumpus_log('I shot at the wumpus\n'), go()).
 
 i_turn() :-
-    (writef('5'), action_turn(), writef('I turn\n'), go()).
+    (wumpus_log('5'), action_turn(), wumpus_log('I turn\n'), go()).
 
 i_unsafely_proceed() :-
-    (writef('6'), \+ i_am_in_front_of_death(), action_move(), writef('I unsafely move\n'), go()).
+    (wumpus_log('6'), \+ i_am_in_front_of_death(), action_move(), wumpus_log('I unsafely move\n'), go()).
 
 i_have_done_a_complete_turn() :-
     turned(0),
@@ -249,20 +253,20 @@ i_return_as_fast_as_possible() :-
         (Y > 1, YP is Y - 1, i_know_it_is_safe(X, YP), action_multi_turn(3))
     ),
     action_move(),
-    writef('Let\'s return as fast as possible'),
+    wumpus_log('Let\'s return as fast as possible'),
     go().
 
 go() :-
     (
         at(X, Y), direction(D),
         (
-            (have(gold), writef('I am at (%w, %w), dir %w, WITH GOLD\n', [X, Y, D]));
-            writef('I am at (%w, %w), dir %w, WITHOUT GOLD\n', [X, Y, D])
+            (have(gold), wumpus_log('I am at (%w, %w), dir %w, WITH GOLD\n', [X, Y, D]));
+            wumpus_log('I am at (%w, %w), dir %w, WITHOUT GOLD\n', [X, Y, D])
         )
     ),
     (
-        i_have_won();
-        i_have_lost();
+        i_have_won(), !;
+        i_have_lost(), !;
         i_grab_gold();
         i_return_as_fast_as_possible();
         \+ i_have_been_at_in_front(), i_safely_proceed();

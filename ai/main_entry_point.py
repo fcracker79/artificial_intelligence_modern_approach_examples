@@ -1,3 +1,4 @@
+import contextlib
 import sys
 import os
 
@@ -8,6 +9,7 @@ from ai.search_tree.eight_queens import entry_point as eight_queens_entry_point
 from ai.search_tree.eight_puzzle import entry_point as eight_puzzle_entry_point
 from ai.search_tree.eight_queens.min_conflict import min_conflict
 from ai.game_play.minmax import entry_point as tic_tac_toe_entry_point
+from ai.reasoning import entry_point as wumpus_entry_point
 
 
 class Unbuffered(object):
@@ -26,29 +28,33 @@ class Unbuffered(object):
         return getattr(self.stream, attr)
 
 
+@contextlib.contextmanager
+def b(message):
+    banner.horizontal(message)
+    yield
+    banner.horizontal('END ' + message)
+
+
 if __name__ == '__main__':
     sys.stdout = Unbuffered(sys.stdout)
     os.environ['PYTHONUNBUFFERED'] = '1'
-    banner.horizontal('SEARCH TREE')
-    search_tree_entry_point.entry_point()
-    banner.horizontal('END SEARCH TREE')
+    with b('SEARCH TREE'):
+        search_tree_entry_point.entry_point()
 
-    banner.horizontal('COLORED AREAS')
-    colored_areas_entry_point.entry_point()
-    banner.horizontal('END COLORED AREAS')
+    with b('COLORED AREAS'):
+        colored_areas_entry_point.entry_point()
 
-    banner.horizontal('EIGHT QUEENS')
-    eight_queens_entry_point.entry_point()
-    banner.horizontal('END EIGHT QUEENS')
+    with b('EIGHT QUEENS'):
+        eight_queens_entry_point.entry_point()
 
-    banner.horizontal('EIGHT QUEENS WITH MIN CONFLICTS')
-    print('{}, with {} iterations'.format(*min_conflict()))
-    banner.horizontal('END EIGHT QUEENS WITH MIN CONFLICTS')
+    with b('EIGHT QUEENS WITH MIN CONFLICTS'):
+        print('{}, with {} iterations'.format(*min_conflict()))
 
-    banner.horizontal('EIGHT PUZZLE')
-    eight_puzzle_entry_point.entry_point()
-    banner.horizontal('END EIGHT PUZZLE')
+    with b('EIGHT PUZZLE'):
+        eight_puzzle_entry_point.entry_point()
 
-    banner.horizontal('TIC TAC TOE')
-    tic_tac_toe_entry_point.entry_point()
-    banner.horizontal('END TIC TAC TOE')
+    with b('TIC TAC TOE'):
+        tic_tac_toe_entry_point.entry_point()
+
+    with b('REASONING: WUMPUS'):
+        wumpus_entry_point.entry_point()
