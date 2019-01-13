@@ -1,3 +1,4 @@
+import contextlib
 import sys
 import os
 
@@ -10,6 +11,8 @@ from ai.search_tree.eight_queens.min_conflict import min_conflict
 from ai.game_play.minmax import entry_point as tic_tac_toe_entry_point
 from ai.search_tree.and_or_search import entry_point as and_or_search_entry_point
 from ai.search_tree.online_search import entry_point as online_search_entry_point
+from ai.reasoning import entry_point as wumpus_entry_point
+
 
 class Unbuffered(object):
     def __init__(self, stream):
@@ -27,51 +30,43 @@ class Unbuffered(object):
         return getattr(self.stream, attr)
 
 
+@contextlib.contextmanager
+def b(message):
+    banner.horizontal(message)
+    yield
+    banner.horizontal('END ' + message)
+    print()
+
+
 if __name__ == '__main__':
     sys.stdout = Unbuffered(sys.stdout)
     os.environ['PYTHONUNBUFFERED'] = '1'
-    banner.horizontal('SEARCH TREE')
-    search_tree_entry_point.entry_point()
-    banner.horizontal('END SEARCH TREE')
+    with b('SEARCH TREE'):
+        search_tree_entry_point.entry_point()
 
-    print()
+    with b('COLORED AREAS'):
+        colored_areas_entry_point.entry_point()
 
-    banner.horizontal('COLORED AREAS')
-    colored_areas_entry_point.entry_point()
-    banner.horizontal('END COLORED AREAS')
+    with b('COLORED AREAS'):
+        colored_areas_entry_point.entry_point()
 
-    print()
+    with b('EIGHT QUEENS'):
+        eight_queens_entry_point.entry_point()
 
-    banner.horizontal('EIGHT QUEENS')
-    eight_queens_entry_point.entry_point()
-    banner.horizontal('END EIGHT QUEENS')
+    with b('EIGHT QUEENS WITH MIN CONFLICTS'):
+        print('{}, with {} iterations'.format(*min_conflict()))
 
-    print()
+    with b('EIGHT PUZZLE'):
+        eight_puzzle_entry_point.entry_point()
 
-    banner.horizontal('EIGHT QUEENS WITH MIN CONFLICTS')
-    print('{}, with {} iterations'.format(*min_conflict()))
-    banner.horizontal('END EIGHT QUEENS WITH MIN CONFLICTS')
+    with b('TIC TAC TOE'):
+        tic_tac_toe_entry_point.entry_point()
 
-    print()
+    with b('AND-OR-SEARCH'):
+        and_or_search_entry_point.entry_point()
 
-    banner.horizontal('EIGHT PUZZLE')
-    eight_puzzle_entry_point.entry_point()
-    banner.horizontal('END EIGHT PUZZLE')
+    with b('ONLINE SEARCH'):
+        online_search_entry_point.entry_point()
 
-    print()
-
-    banner.horizontal('TIC TAC TOE')
-    tic_tac_toe_entry_point.entry_point()
-    banner.horizontal('END TIC TAC TOE')
-
-    print()
-
-    banner.horizontal('AND-OR-SEARCH')
-    and_or_search_entry_point.entry_point()
-    banner.horizontal('END AND-OR-SEARCH')
-
-    print()
-
-    banner.horizontal('ONLINE SEARCH')
-    online_search_entry_point.entry_point()
-    banner.horizontal('END ONLINE SEARCH')
+    with b('REASONING: WUMPUS'):
+        wumpus_entry_point.entry_point()
