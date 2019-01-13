@@ -26,7 +26,7 @@ pit(3, 1) :- !.
 pit(4, 4) :- !.
 gold(2, 3) :- !.
 
-init() :-
+init(_) :-
     assertz(direction(0)),
     assertz(wumpus(1, 3)),
     assertz(at(1, 1)),
@@ -57,7 +57,7 @@ infer_safe_positions_if_i_am_in_a_clear_position(X, Y) :-
         (Y =:= 1; (YQ is Y - 1, asserta(i_know_it_is_safe(X, YQ))))
     ).
 
-action_move() :-
+action_move(_) :-
     at(X, Y),
     (retractall(turned(_)); !),
     direction(D), asserta(turned(D)),
@@ -160,7 +160,7 @@ i_am_in_front_of_death() :-
         (direction(3), YP is Y - 1, there_must_be_deadly_stuff(X, YP))
     ).
 
-i_am_in_front_of_wall() :-
+i_am_in_front_of_wall(_) :-
     at(X, Y),
     (
         (direction(0), XP is X + 1, wall(XP, Y));
@@ -169,7 +169,7 @@ i_am_in_front_of_wall() :-
         (direction(3), YP is Y - 1, wall(X, YP))
     ).
 
-i_am_in_front_of_safe() :-
+i_am_in_front_of_safe(_) :-
     at(X, Y),
     (
         (direction(0), XP is X + 1, i_know_it_is_safe(XP, Y));
@@ -178,7 +178,7 @@ i_am_in_front_of_safe() :-
         (direction(3), YP is Y - 1, i_know_it_is_safe(X, YP))
     ).
 
-i_have_been_at_in_front() :-
+i_have_been_at_in_front(_) :-
     at(X, Y),
     (
         (direction(0), XP is X + 1, i_have_been_at(XP, Y));
@@ -204,59 +204,148 @@ action_shoot() :-
     retractall(wumpus(_, _)),
     retractall(i_know_it_is_stentch(_, _)).
 
-win() :-
+win(_) :-
     at(1, 1),
     have(gold).
 
-lost() :-
+lost(_) :-
     at(X, Y),
     (wumpus(X, Y); pit(X, Y)).
 
-explore() :-
-    init(),
-    go().
+explore(RESULT) :-
+    init(_),
+    go([], RESULT).
 
 
-i_have_won() :-
-    (wumpus_log('0'), win(), wumpus_log('I have won\n')).
+define_and_fail(CURRENT_STATUS, RESULT) :-
+    append(CURRENT_STATUS, [], RESULT), false.
 
-i_have_lost() :-
-    (wumpus_log('1'), lost(), wumpus_log('I have lost\n')).
+append_with_status(CURRENT_STATUS, V, RESULT) :-
+    at(X, Y), direction(D),
+    format(atom(VALUE), '[~w] at (~w, ~w, dir ~w)', [V, X, Y, D]),
+    append(CURRENT_STATUS, [VALUE], RESULT).
 
-i_grab_gold() :-
-    (wumpus_log('2'), at(X, Y), \+ have(gold), gold(X, Y), assertz(have(gold)), wumpus_log('I have grabbed gold\n'), go()).
+i_have_won(CURRENT_STATUS, RESULT) :-
+    (
+        wumpus_log('0'),
+        (
+            (win(_), append_with_status(CURRENT_STATUS, 'WIN', RESULT));
+            define_and_fail(CURRENT_STATUS, result)
+        ),
+        wumpus_log('I have won\n')
+    ).
 
-i_safely_proceed() :-
-    (wumpus_log('3'), i_am_in_front_of_safe(), \+ i_am_in_front_of_wall(), action_move(), wumpus_log('I safely move\n'), go()).
+i_have_lost(CURRENT_STATUS, RESULT) :-
+    (
+        wumpus_log('1'),
+        (
+            (lost(_), append_with_status(CURRENT_STATUS, 'LOSE', RESULT));
+            define_and_fail(CURRENT_STATUS, RESULT)
+        ),
+        wumpus_log('I have lost\n')
+    ).
 
-i_kill_the_wumpus() :-
-    (wumpus_log('4'), have(arrow), i_am_in_front_of_wumpus(), action_shoot(), wumpus_log('I shot at the wumpus\n'), go()).
+i_grab_gold(CURRENT_STATUS, RESULT) :-
+    (
+        wumpus_log('2'),
+        (
+            (
+                at(X, Y),
+                \+ have(gold),
+                gold(X, Y),
+                assertz(have(gold)),
+                append_with_status(CURRENT_STATUS, 'GRAB_GOLD', RESULT1)
+            );
+            define_and_fail(CURRENT_STATUS, RESULT)
+        ),
+        wumpus_log('I have grabbed gold\n'),
+        go(RESULT1, RESULT)
+    ).
 
-i_turn() :-
-    (wumpus_log('5'), action_turn(), wumpus_log('I turn\n'), go()).
+i_safely_proceed(CURRENT_STATUS, RESULT) :-
+    (
+        wumpus_log('3'),
+        (
+            (
+                i_am_in_front_of_safe(_),
+                \+ i_am_in_front_of_wall(_),
+                action_move(_),
+                append_with_status(CURRENT_STATUS, 'MOVE1', RESULT1)
+            );
+            define_and_fail(CURRENT_STATUS, RESULT)
+        ),
+        wumpus_log('I safely move\n'),
+        go(RESULT1, RESULT)
+    ).
 
-i_unsafely_proceed() :-
-    (wumpus_log('6'), \+ i_am_in_front_of_death(), action_move(), wumpus_log('I unsafely move\n'), go()).
+i_kill_the_wumpus(CURRENT_STATUS, RESULT) :-
+    (
+        wumpus_log('4'),
+        (
+            (
+                have(arrow),
+                i_am_in_front_of_wumpus(),
+                action_shoot(),
+                append_with_status(CURRENT_STATUS, 'SHOOT', RESULT1)
+            );
+            define_and_fail(CURRENT_STATUS, RESULT)
+        ),
+        wumpus_log('I shot at the wumpus\n'), go(RESULT1, RESULT)
+    ).
 
-i_have_done_a_complete_turn() :-
+i_turn(CURRENT_STATUS, RESULT) :-
+    (
+        wumpus_log('5'),
+        (
+            (
+                action_turn(),
+                append_with_status(CURRENT_STATUS, 'TURN', RESULT1)
+            );
+            define_and_fail(CURRENT_STATUS, RESULT)
+        ),
+        wumpus_log('I turn\n'),
+        go(RESULT1, RESULT)
+    ).
+
+i_unsafely_proceed(CURRENT_STATUS, RESULT) :-
+    (
+        wumpus_log('6'),
+        (
+            (
+                \+ i_am_in_front_of_death(),
+                action_move(_),
+                append_with_status(CURRENT_STATUS, 'WIN', RESULT1)
+            );
+            define_and_fail(CURRENT_STATUS, RESULT)
+        ),
+        wumpus_log('I unsafely move\n'), go(RESULT1, RESULT)
+    ).
+
+i_have_done_a_complete_turn(_) :-
     turned(0),
     turned(1),
     turned(2),
     turned(3).
 
 
-i_return_as_fast_as_possible() :-
-    have(gold),
-    at(X, Y),
+i_return_as_fast_as_possible(CURRENT_STATUS, RESULT) :-
     (
-        (X > 1, XP is X - 1, i_know_it_is_safe(XP, Y), action_multi_turn(2));
-        (Y > 1, YP is Y - 1, i_know_it_is_safe(X, YP), action_multi_turn(3))
+        (
+            have(gold),
+            at(X, Y),
+            (
+                (X > 1, XP is X - 1, i_know_it_is_safe(XP, Y), action_multi_turn(2));
+                (Y > 1, YP is Y - 1, i_know_it_is_safe(X, YP), action_multi_turn(3))
+            ),
+            action_move(_),
+            append_with_status(CURRENT_STATUS, 'MOVE_BACK', RESULT1)
+        );
+        define_and_fail(CURRENT_STATUS, RESULT)
     ),
-    action_move(),
     wumpus_log('Let\'s return as fast as possible'),
-    go().
+    go(RESULT1, RESULT).
 
-go() :-
+go(CURRENT_STATUS, RESULT) :-
     (
         at(X, Y), direction(D),
         (
@@ -265,14 +354,14 @@ go() :-
         )
     ),
     (
-        i_have_won(), !;
-        i_have_lost(), !;
-        i_grab_gold();
-        i_return_as_fast_as_possible();
-        \+ i_have_been_at_in_front(), i_safely_proceed();
-        \+ i_have_done_a_complete_turn(), i_turn();
-        i_safely_proceed();
-        i_turn();
-        i_kill_the_wumpus();
-        i_unsafely_proceed()
+        i_have_won(CURRENT_STATUS, RESULT), !;
+        i_have_lost(CURRENT_STATUS, RESULT), !;
+        i_grab_gold(CURRENT_STATUS, RESULT);
+        i_return_as_fast_as_possible(CURRENT_STATUS, RESULT);
+        \+ i_have_been_at_in_front(_), i_safely_proceed(CURRENT_STATUS, RESULT);
+        \+ i_have_done_a_complete_turn(_), i_turn(CURRENT_STATUS, RESULT);
+        i_safely_proceed(CURRENT_STATUS, RESULT);
+        i_turn(CURRENT_STATUS, RESULT);
+        i_kill_the_wumpus(CURRENT_STATUS, RESULT);
+        i_unsafely_proceed(CURRENT_STATUS, RESULT)
     ).
