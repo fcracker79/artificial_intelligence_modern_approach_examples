@@ -162,9 +162,3 @@ class PuzzleGraph(GenericGraph[Puzzle]):
         cost = node2.cost - node1_cost
         return cost > 0 and cost or node1_cost
 
-
-p = Puzzle()
-p.positions = [1, 2, 3, 8, 0, 4, 7, 6, 5]
-p.empty_slot = 4
-print(p.cost_by_distance)
-print(p.cost_by_nearby_wrong_elements)

@@ -12,6 +12,7 @@ from ai.game_play.minmax import entry_point as tic_tac_toe_entry_point
 from ai.search_tree.and_or_search import entry_point as and_or_search_entry_point
 from ai.search_tree.online_search import entry_point as online_search_entry_point
 from ai.reasoning import entry_point as wumpus_entry_point
+from ai.probabilistic_reasoning import entry_point as probabilistic_reasoning_entry_point
 
 
 class Unbuffered(object):
@@ -70,3 +71,6 @@ if __name__ == '__main__':
 
     with b('REASONING: WUMPUS'):
         wumpus_entry_point.entry_point()
+
+    with b('PROBABILISTIC REASONING'):
+        probabilistic_reasoning_entry_point.entry_point()
