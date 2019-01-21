@@ -1,5 +1,6 @@
 from ai.probabilistic_reasoning import print_tools
-from ai.probabilistic_reasoning.bayesian_network import BayesianNetworkBuilder, BayesianNetwork, probability
+from ai.probabilistic_reasoning.bayesian_network import BayesianNetworkBuilder, BayesianNetwork, probability, \
+    single_variable_probability
 
 
 def _create_alarm_bayesian_network() -> BayesianNetwork:
@@ -39,13 +40,14 @@ def _create_alarm_bayesian_network() -> BayesianNetwork:
         return 0.7 if truth[0] else 0.01
     mary_calls = builder.create_variable('Mary Calls', _f3)
     builder.add_arrow(alarm, mary_calls)
-    return builder.build(), \
-           tuple(
-               map(
-                   lambda d: builder.get_variable_by_id(d),
-                   (burglary, earthquake, alarm, john_calls, mary_calls)
-               )
+    return \
+        builder.build(), \
+        tuple(
+           map(
+               lambda d: builder.get_variable_by_id(d),
+               (burglary, earthquake, alarm, john_calls, mary_calls)
            )
+        )
 
 
 def entry_point():
@@ -66,6 +68,11 @@ def entry_point():
         'Probability to be called by John and Mary when alarm activates but neither earthquake nor burglary: ',
         p, ', expected 0.000628')
     assert abs(p - 0.000628) < 0.000001
+
+    print(
+        'Probability of alarm',
+        single_variable_probability(alarm, (burglary, earthquake, john_calls, mary_calls))
+    )
 
 
 if __name__ == '__main__':
