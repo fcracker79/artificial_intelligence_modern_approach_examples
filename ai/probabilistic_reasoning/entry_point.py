@@ -1,6 +1,8 @@
+from pprint import pprint
+
 from ai.probabilistic_reasoning import print_tools
 from ai.probabilistic_reasoning.bayesian_network import BayesianNetworkBuilder, BayesianNetwork, probability, \
-    single_variable_probability
+    single_variable_probability, get_markov_blanket
 
 
 def _create_alarm_bayesian_network() -> BayesianNetwork:
@@ -73,6 +75,9 @@ def entry_point():
         'Probability of alarm',
         single_variable_probability(alarm, (burglary, earthquake, john_calls, mary_calls))
     )
+
+    print('Markov blanket for Burglary')
+    pprint(list(get_markov_blanket(burglary)))
 
 
 if __name__ == '__main__':

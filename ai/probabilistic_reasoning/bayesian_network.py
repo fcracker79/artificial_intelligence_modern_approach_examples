@@ -1,3 +1,4 @@
+import itertools
 import typing
 import uuid
 from functools import reduce
@@ -31,6 +32,12 @@ class BayesianVariable:
 
     def __hash__(self):
         return hash(self.id)
+
+    def __str__(self):
+        return '{}({})'.format(self.data, self.id)
+
+    def __repr__(self):
+        return str(self)
 
 
 BayesianNetwork = typing.NewType('BayesianNetwork', typing.Sequence[BayesianVariable])
@@ -107,3 +114,15 @@ def single_variable_probability(
         return probability(all_statuses)
 
     return sum(map(_f, range(2**len(all_the_other_nodes))))
+
+
+def get_markov_blanket(variable: BayesianVariable) -> typing.Iterator[BayesianVariable]:
+    return itertools.chain(
+        variable.children, variable.parents,
+        set(
+            filter(
+                lambda d: d != variable,
+                itertools.chain(*map(lambda d: d.parents, variable.children))
+            )
+        )
+    )
