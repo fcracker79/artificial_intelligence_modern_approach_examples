@@ -105,12 +105,13 @@ def _probability_node(
 
 
 def single_variable_probability(
-        variable: BayesianVariable,
         all_the_other_nodes: typing.Sequence[BayesianVariable],
+        *variable: BayesianVariable
 ) -> float:
     def _f(i: int):
         all_statuses = {v: bool(i & (1 << k)) for k, v in enumerate(all_the_other_nodes)}
-        all_statuses[variable] = True
+        for v in variable:
+            all_statuses[v] = True
         return probability(all_statuses)
 
     return sum(map(_f, range(2**len(all_the_other_nodes))))

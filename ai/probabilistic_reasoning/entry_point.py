@@ -73,9 +73,13 @@ def entry_point():
 
     print(
         'Probability of alarm',
-        single_variable_probability(alarm, (burglary, earthquake, john_calls, mary_calls))
+        single_variable_probability((burglary, earthquake, john_calls, mary_calls), alarm)
     )
 
+    p = single_variable_probability((earthquake, alarm), burglary, john_calls, mary_calls) / \
+        single_variable_probability((earthquake, alarm, burglary), john_calls, mary_calls)
+    print('Probability of burglar given both John and Mary called', p)
+    assert abs(p - 0.284) < 0.001
     print('Markov blanket for Burglary')
     pprint(list(get_markov_blanket(burglary)))
 
