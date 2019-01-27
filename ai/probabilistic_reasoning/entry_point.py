@@ -2,7 +2,14 @@ from pprint import pprint
 
 from ai.probabilistic_reasoning import print_tools
 from ai.probabilistic_reasoning.bayesian_network import BayesianNetworkBuilder, BayesianNetwork, probability, \
-    single_variable_probability, get_markov_blanket
+    single_variable_probability, get_markov_blanket, multivariable_with_hidden_probability
+
+try:
+    assert False
+    # noinspection PyUnreachableCode
+    raise ValueError('Please enable assertions')
+except AssertionError:
+    pass
 
 
 def _create_alarm_bayesian_network() -> BayesianNetwork:
@@ -76,10 +83,16 @@ def entry_point():
         single_variable_probability((burglary, earthquake, john_calls, mary_calls), alarm)
     )
 
+    # p(B|j, m) = p(B, j, m) / p(j, m)
     p = single_variable_probability((earthquake, alarm), burglary, john_calls, mary_calls) / \
         single_variable_probability((earthquake, alarm, burglary), john_calls, mary_calls)
     print('Probability of burglar given both John and Mary called', p)
     assert abs(p - 0.284) < 0.001
+    # p(!B|j, m) = p(!B, j, m)/p(j, m)
+    not_p = multivariable_with_hidden_probability(
+        (earthquake, alarm), {burglary: False, john_calls: True, mary_calls: True}) / \
+        single_variable_probability((earthquake, alarm, burglary), john_calls, mary_calls)
+    assert p + not_p == 1
     print('Markov blanket for Burglary')
     pprint(list(get_markov_blanket(burglary)))
 

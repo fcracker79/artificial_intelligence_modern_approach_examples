@@ -105,16 +105,30 @@ def _probability_node(
 
 
 def single_variable_probability(
-        all_the_other_nodes: typing.Sequence[BayesianVariable],
+        hidden_variables: typing.Sequence[BayesianVariable],
         *variable: BayesianVariable
 ) -> float:
+    return multivariable_with_hidden_probability(hidden_variables, {v: True for v in variable})
+
+
+def single_variable_negative_probability(
+        hidden_variables: typing.Sequence[BayesianVariable],
+        *variable: BayesianVariable
+) -> float:
+    return multivariable_with_hidden_probability(hidden_variables, {v: False for v in variable})
+
+
+def multivariable_with_hidden_probability(
+        hidden_variables: typing.Sequence[BayesianVariable],
+        known_variables: typing.Dict[BayesianVariable, bool]
+) -> float:
     def _f(i: int):
-        all_statuses = {v: bool(i & (1 << k)) for k, v in enumerate(all_the_other_nodes)}
-        for v in variable:
-            all_statuses[v] = True
+        all_statuses = {v: bool(i & (1 << k)) for k, v in enumerate(hidden_variables)}
+        for v, b in known_variables.items():
+            all_statuses[v] = b
         return probability(all_statuses)
 
-    return sum(map(_f, range(2**len(all_the_other_nodes))))
+    return sum(map(_f, range(2 ** len(hidden_variables))))
 
 
 def get_markov_blanket(variable: BayesianVariable) -> typing.Iterator[BayesianVariable]:
