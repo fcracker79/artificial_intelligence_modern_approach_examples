@@ -2,7 +2,8 @@ from pprint import pprint
 
 from ai.probabilistic_reasoning import print_tools
 from ai.probabilistic_reasoning.bayesian_network import BayesianNetworkBuilder, BayesianNetwork, probability, \
-    single_variable_probability, get_markov_blanket, multivariable_with_hidden_probability
+    single_variable_probability, get_markov_blanket, multivariable_with_hidden_probability, rejection_sampling, \
+    likelihood_weighting
 
 try:
     assert False
@@ -95,6 +96,26 @@ def entry_point():
     assert p + not_p == 1
     print('Markov blanket for Burglary')
     pprint(list(get_markov_blanket(burglary)))
+    pb_jm = rejection_sampling(
+        burglary, {john_calls: True, mary_calls: True},
+        network)
+    print('P(B|j, m), Probability by rejection sampling: {}'.format(
+        pb_jm
+    ))
+    try:
+        assert abs(pb_jm - p) < 0.001
+    except AssertionError:
+        print('Unfortunately rejection sampling rejects too many events')
+
+    # Likehood weighting should work a bit better than rejection sampling.
+    pb_jm = likelihood_weighting(
+        burglary, {john_calls: True, mary_calls: True},
+        network)
+    print('P(B|j, m), Probability by likehood weighting: {}'.format(
+        pb_jm
+    ))
+    assert abs(pb_jm - p) < 0.05
+
 
 
 if __name__ == '__main__':

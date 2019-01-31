@@ -1,13 +1,16 @@
 import itertools
+import random
 import typing
 import uuid
 from functools import reduce
 
+
+ParentVariables = typing.NewType('ParentVariables', typing.Sequence['BayesianVariable'])
+ParentVariableStates = typing.NewType('ParentVariableStates', typing.Sequence[bool])
 ConditionalProbabilityTable = typing.NewType(
     'ConditionalProbabilityTable',
-    typing.Callable[[typing.Sequence['BayesianVariable'], typing.Sequence[bool]], float]
+    typing.Callable[[ParentVariables, ParentVariableStates], float]
 )
-
 
 BayesianVariableID = typing.NewType('BayesianVariableID', uuid.UUID)
 
@@ -39,6 +42,9 @@ class BayesianVariable:
     def __repr__(self):
         return str(self)
 
+
+SamplingFunction = typing.NewType(
+    'SamplingFunction', typing.Callable[[BayesianVariable], bool])
 
 BayesianNetwork = typing.NewType('BayesianNetwork', typing.Sequence[BayesianVariable])
 
@@ -141,3 +147,84 @@ def get_markov_blanket(variable: BayesianVariable) -> typing.Iterator[BayesianVa
             )
         )
     )
+
+
+def _simple_sampling_function(
+        v: BayesianVariable,
+        parent_variable_states: ParentVariableStates) -> bool:
+    return random.uniform(0, 1) <= v.conditional_probability_table(v.parents, parent_variable_states)
+
+
+_DEFAULT_SAMPLE = 10000
+
+
+def _generate_sample(
+        *variables: BayesianVariable,
+        evidence: typing.Optional[typing.Dict[BayesianVariable, bool]]=None,
+        sampling_function: SamplingFunction=_simple_sampling_function,
+        result: typing.Optional[typing.Dict[BayesianVariable, bool]]=None
+) -> typing.Dict[BayesianVariable, bool]:
+    if evidence is None:
+        evidence = {}
+    if result is None:
+        result = {**evidence}
+    for variable in variables:
+        if variable in result:
+            continue
+        for v in variable.parents:
+            if v not in result:
+                _generate_sample(v, evidence=evidence, sampling_function=sampling_function, result=result)
+        result[variable] = sampling_function(variable, [result[p] for p in variable.parents])
+        _generate_sample(*variable.children, evidence=evidence, sampling_function=sampling_function, result=result)
+    return result
+
+
+def rejection_sampling(
+        variable: BayesianVariable, preconditions: typing.Dict[BayesianVariable, bool],
+        network: BayesianNetwork,
+        sampling_function: SamplingFunction=_simple_sampling_function,
+        samples: int=_DEFAULT_SAMPLE
+):
+    valid_samples = 0
+    for sample in (_generate_sample(*network, sampling_function=sampling_function) for _ in range(samples)):
+        # Here we skip all the samples that are not compliant with evidence
+        if not sample[variable] or not all(preconditions[v] == sample[v] for v in preconditions):
+            continue
+        valid_samples += 1
+    return valid_samples / samples
+
+
+def _weighted_sample(
+        network: BayesianNetwork, evidence: typing.Dict[BayesianVariable, bool],
+        sampling_function: SamplingFunction=_simple_sampling_function):
+    def _prob(variable: BayesianVariable, all_variables: typing.Dict[BayesianVariable, bool]):
+        w = variable.conditional_probability_table(
+            variable.parents, [all_variables[p] for p in variable.parents]
+        )
+        if not all_variables[variable]:
+            w = 1 - w
+        return w
+
+    sample = _generate_sample(
+        *network, evidence=evidence, sampling_function=sampling_function
+    )
+    w = reduce(
+        lambda a, b: a * b,
+        (_prob(e, sample) for e in evidence)
+    )
+    return sample, w
+
+
+def likelihood_weighting(
+        variable: BayesianVariable, preconditions: typing.Dict[BayesianVariable, bool],
+        network: BayesianNetwork,
+        sampling_function: SamplingFunction=_simple_sampling_function,
+        samples: int=_DEFAULT_SAMPLE
+):
+    true_samples = false_samples = 0
+    for sample, w in (
+            _weighted_sample(network, preconditions, sampling_function=sampling_function)
+            for _ in range(samples)):
+        true_samples += sample[variable] * w
+        false_samples += (not sample[variable]) * w
+    return true_samples / (true_samples + false_samples)
