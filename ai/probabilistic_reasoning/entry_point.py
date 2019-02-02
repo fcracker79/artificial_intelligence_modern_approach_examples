@@ -3,7 +3,7 @@ from pprint import pprint
 from ai.probabilistic_reasoning import print_tools
 from ai.probabilistic_reasoning.bayesian_network import BayesianNetworkBuilder, BayesianNetwork, probability, \
     single_variable_probability, get_markov_blanket, multivariable_with_hidden_probability, rejection_sampling, \
-    likelihood_weighting
+    likelihood_weighting, gibbs_sampling
 
 try:
     assert False
@@ -26,7 +26,13 @@ def _create_alarm_bayesian_network() -> BayesianNetwork:
             elif n.id == earthquake:
                 e_truth = n_truth
             else:
-                raise ValueError
+                # This may happen if the conditional probability table
+                # is used against the Markov blanket, rather than the parent
+                # variables. This should never happen, but in our example
+                # we don't have real samples, so we simulate a "sample" given
+                # the Markov blanket using the conditional probability table.
+                continue
+                # raise ValueError('Unexpected {}'.format(n))
             if b_truth is not None and e_truth is not None:
                 break
         if b_truth and e_truth:
@@ -99,22 +105,30 @@ def entry_point():
     pb_jm = rejection_sampling(
         burglary, {john_calls: True, mary_calls: True},
         network)
-    print('P(B|j, m), Probability by rejection sampling: {}'.format(
-        pb_jm
-    ))
+    print('P(B|j, m), Probability by rejection sampling: {}'.format(pb_jm))
     try:
         assert abs(pb_jm - p) < 0.001
     except AssertionError:
-        print('Unfortunately rejection sampling rejects too many events')
+        print('Unfortunately rejection sampling rejects too many events. Error: ', abs(pb_jm - p))
 
     # Likehood weighting should work a bit better than rejection sampling.
     pb_jm = likelihood_weighting(
         burglary, {john_calls: True, mary_calls: True},
         network)
-    print('P(B|j, m), Probability by likehood weighting: {}'.format(
-        pb_jm
-    ))
-    assert abs(pb_jm - p) < 0.05
+    print('P(B|j, m), Probability by likehood weighting: {}'.format(pb_jm))
+    try:
+        assert abs(pb_jm - p) < 0.05
+    except AssertionError:
+        print('Such a pity, likehood weighting did not work well. Error: ', abs(pb_jm - p))
+
+    pb_jm = gibbs_sampling(
+        burglary, {john_calls: True, mary_calls: True},
+        network)
+    print('P(B|j, m), Probability by Gibbs sampling: {}'.format(pb_jm))
+    try:
+        assert abs(pb_jm - p) < 0.05
+    except AssertionError:
+        print('Such a pity, Gibbs sampling did not work well. Error: ', abs(pb_jm - p))
 
 
 

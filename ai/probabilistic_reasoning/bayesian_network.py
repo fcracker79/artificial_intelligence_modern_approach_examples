@@ -44,7 +44,7 @@ class BayesianVariable:
 
 
 SamplingFunction = typing.NewType(
-    'SamplingFunction', typing.Callable[[BayesianVariable], bool])
+    'SamplingFunction', typing.Callable[[BayesianVariable, typing.Sequence[BayesianVariable]], bool])
 
 BayesianNetwork = typing.NewType('BayesianNetwork', typing.Sequence[BayesianVariable])
 
@@ -151,11 +151,22 @@ def get_markov_blanket(variable: BayesianVariable) -> typing.Iterator[BayesianVa
 
 def _simple_sampling_function(
         v: BayesianVariable,
-        parent_variable_states: ParentVariableStates) -> bool:
-    return random.uniform(0, 1) <= v.conditional_probability_table(v.parents, parent_variable_states)
+        parent_variable_states: ParentVariableStates,
+        parent_variables: typing.Sequence[BayesianVariable]=None) -> bool:
+    if parent_variables is None:
+        parent_variables = v.parents
+    return random.uniform(0, 1) <= v.conditional_probability_table(
+        parent_variables, parent_variable_states)
 
 
 _DEFAULT_SAMPLE = 10000
+
+# IMPORTANT
+# All sampling function should NEVER use the `conditional_probability_table` method
+# with nonevidence variables. In this code we use that function just in the fake
+# sampling method as we don't have real samples.
+# Another use case of the `conditional_probability_table` function is for evidence
+# variables, as in real problems we know their probability distribution function.
 
 
 def _generate_sample(
@@ -228,3 +239,37 @@ def likelihood_weighting(
         true_samples += sample[variable] * w
         false_samples += (not sample[variable]) * w
     return true_samples / (true_samples + false_samples)
+
+
+def _all_variables(*variable: BayesianVariable) -> typing.Iterator[BayesianVariable]:
+    yield from variable
+    for v in variable:
+        yield from v.children
+
+
+def gibbs_sampling(
+        variable: BayesianVariable, preconditions: typing.Dict[BayesianVariable, bool],
+        network: BayesianNetwork,
+        sampling_function: SamplingFunction=_simple_sampling_function,
+        samples: int=_DEFAULT_SAMPLE
+):
+    result = [0, 0]
+    state = dict(preconditions)
+    nonevidence_variables = [v for v in set(_all_variables(*network))]
+    state.update({v: bool(random.uniform(0, 1) >= 0.5) for v in nonevidence_variables})
+    for _ in range(samples):
+        nonevidence_random_variable = nonevidence_variables[random.randint(0, len(nonevidence_variables) - 1)]
+        markov_blanket = list(get_markov_blanket(nonevidence_random_variable))
+        markov_blanket_states = [state[v] for v in markov_blanket]
+
+        # In our example we don't have a real problem, so our sampling function
+        # is just using conditional probabilities from the Bayesian network.
+        # This means that the distribution of the `nonevidence_random_variable` can
+        # never depend on its whole Markov blanket, but just on its parents.
+        # In a real scenario, we would have samples that would take the Markov
+        # blanket into account as well.
+        # For sake of correctness, we "sample" the function given the Markov blanket.
+        state[nonevidence_random_variable] = \
+            sampling_function(nonevidence_random_variable, markov_blanket_states, parent_variables=markov_blanket)
+        result[state[variable]] += 1
+    return result[1] / sum(result)
